@@ -21,8 +21,8 @@ public class MainActivity extends AppCompatActivity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
     nfcAdapter = NfcAdapter.getDefaultAdapter(this);
-    this.cardManager = new CardManager();
-    this.cardManager.start();
+    cardManager = new CardManager();
+    cardManager.start();
   }
 
   @Override
