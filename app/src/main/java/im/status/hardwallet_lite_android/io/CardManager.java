@@ -16,35 +16,35 @@ public class CardManager extends Thread implements NfcAdapter.ReaderCallback {
     private boolean isRunning;
 
     public boolean isConnected() {
-        return this.isoDep != null && this.isoDep.isConnected();
+        return isoDep != null && isoDep.isConnected();
     }
 
     @Override
     public void onTagDiscovered(Tag tag) {
-        this.isoDep = IsoDep.get(tag);
+        isoDep = IsoDep.get(tag);
 
         try {
-            this.isoDep = IsoDep.get(tag);
-            this.isoDep.connect();
-            this.isoDep.setTimeout(120000);
+            isoDep = IsoDep.get(tag);
+            isoDep.connect();
+            isoDep.setTimeout(120000);
         } catch (IOException e) {
             Log.e(TAG, "error connecting to tag");
         }
     }
 
     public void run() {
-        boolean connected = this.isConnected();
+        boolean connected = isConnected();
 
         while(true) {
-            boolean newConnected = this.isConnected();
+            boolean newConnected = isConnected();
             if (newConnected != connected) {
                 connected = newConnected;
                 Log.i(TAG, "tag " + (connected ? "connected" : "disconnected"));
 
                 if (connected && !isRunning) {
-                    this.onCardConnected();
+                    onCardConnected();
                 } else {
-                    this.onCardDisconnected();
+                    onCardDisconnected();
                 }
             }
 
@@ -53,10 +53,10 @@ public class CardManager extends Thread implements NfcAdapter.ReaderCallback {
     }
 
     private void onCardConnected() {
-        this.isRunning = true;
+        isRunning = true;
 
         try {
-            CardChannel cardChannel = new CardChannel(this.isoDep);
+            CardChannel cardChannel = new CardChannel(isoDep);
             // Applet-specific code
             WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(cardChannel);
 
@@ -86,11 +86,11 @@ public class CardManager extends Thread implements NfcAdapter.ReaderCallback {
             Log.e(TAG, e.getMessage());
         }
 
-        this.isRunning = false;
+        isRunning = false;
     }
 
     private void onCardDisconnected() {
-        this.isRunning = false;
-        this.isoDep = null;
+        isRunning = false;
+        isoDep = null;
     }
 }
