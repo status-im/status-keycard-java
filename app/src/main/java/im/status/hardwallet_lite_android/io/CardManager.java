@@ -5,15 +5,14 @@ import android.nfc.Tag;
 import android.nfc.tech.IsoDep;
 import android.os.SystemClock;
 import android.util.Log;
-import im.status.hardwallet_lite_android.wallet.WalletAppletCommandSet;
 import java.io.IOException;
-import org.spongycastle.util.encoders.Hex;
 
 public class CardManager extends Thread implements NfcAdapter.ReaderCallback {
     private static final String TAG = "CardManager";
 
     private IsoDep isoDep;
     private boolean isRunning;
+    private OnCardConnectedListener onCardConnectedListener;
 
     public boolean isConnected() {
         return isoDep != null && isoDep.isConnected();
@@ -35,7 +34,7 @@ public class CardManager extends Thread implements NfcAdapter.ReaderCallback {
     public void run() {
         boolean connected = isConnected();
 
-        while(true) {
+        while (true) {
             boolean newConnected = isConnected();
             if (newConnected != connected) {
                 connected = newConnected;
@@ -55,36 +54,7 @@ public class CardManager extends Thread implements NfcAdapter.ReaderCallback {
     private void onCardConnected() {
         isRunning = true;
 
-        try {
-            CardChannel cardChannel = new CardChannel(isoDep);
-            // Applet-specific code
-            WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(cardChannel);
-
-            // First thing to do is selecting the applet on the card.
-            cmdSet.select().checkOK();
-
-            // In real projects, the pairing key should be saved and used for all new sessions.
-            cmdSet.autoPair("WalletAppletTest");
-
-            // Opening a Secure Channel is needed for all other applet commands
-            cmdSet.autoOpenSecureChannel();
-
-            // We send a GET STATUS command, which does not require PIN authentication
-            APDUResponse resp = cmdSet.getStatus(WalletAppletCommandSet.GET_STATUS_P1_APPLICATION).checkOK();
-
-            // PIN authentication allows execution of privileged commands
-            cmdSet.verifyPIN("000000").checkOK();
-
-            // Cleanup, in a real application you would not unpair and instead keep the pairing key for successive interactions.
-            // We also remove all other pairings so that we do not fill all slots with failing runs. Again in real application
-            // this would be a very bad idea to do.
-            cmdSet.unpairOthers();
-            cmdSet.autoUnpair();
-
-            Log.i(TAG, "GET STATUS response: " + Hex.toHexString(resp.getData()));
-        } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
-        }
+        onCardConnectedListener.onConnected(new CardChannel(isoDep));
 
         isRunning = false;
     }
@@ -92,5 +62,9 @@ public class CardManager extends Thread implements NfcAdapter.ReaderCallback {
     private void onCardDisconnected() {
         isRunning = false;
         isoDep = null;
+    }
+
+    public void setOnConnectedListener(OnCardConnectedListener onConnectedListener) {
+        onCardConnectedListener = onConnectedListener;
     }
 }
