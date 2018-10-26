@@ -64,7 +64,7 @@ public class CardManager extends Thread implements NfcAdapter.ReaderCallback {
         isoDep = null;
     }
 
-    public void setOnConnectedListener(OnCardConnectedListener onConnectedListener) {
+    public void setOnCardConnectedListener(OnCardConnectedListener onConnectedListener) {
         onCardConnectedListener = onConnectedListener;
     }
 }

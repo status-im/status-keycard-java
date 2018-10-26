@@ -4,7 +4,7 @@ import android.nfc.NfcAdapter;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import im.status.hardwallet_lite_android.R;
+import im.status.hardwallet_lite_android.demo.R;
 import im.status.hardwallet_lite_android.io.APDUResponse;
 import im.status.hardwallet_lite_android.io.CardChannel;
 import im.status.hardwallet_lite_android.io.CardManager;
@@ -30,10 +30,13 @@ public class MainActivity extends AppCompatActivity {
     nfcAdapter = NfcAdapter.getDefaultAdapter(this);
     cardManager = new CardManager();
 
-    cardManager.setOnConnectedListener(new OnCardConnectedListener() {
+    cardManager.setOnCardConnectedListener(new OnCardConnectedListener() {
       @Override
       public void onConnected(CardChannel cardChannel) {
         try {
+
+          Log.i(TAG, "onCardConnected()");
+
           // Applet-specific code
           WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(cardChannel);
 
