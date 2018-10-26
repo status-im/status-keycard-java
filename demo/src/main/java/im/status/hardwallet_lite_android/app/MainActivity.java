@@ -10,13 +10,8 @@ import im.status.hardwallet_lite_android.io.CardChannel;
 import im.status.hardwallet_lite_android.io.CardManager;
 import im.status.hardwallet_lite_android.io.OnCardConnectedListener;
 import im.status.hardwallet_lite_android.wallet.WalletAppletCommandSet;
-import java.security.Security;
-import org.spongycastle.util.encoders.Hex;
 
 public class MainActivity extends AppCompatActivity {
-  static {
-    Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
-  }
 
   private static final String TAG = "MainActivity";
 
@@ -43,17 +38,27 @@ public class MainActivity extends AppCompatActivity {
           // First thing to do is selecting the applet on the card.
           cmdSet.select().checkOK();
 
+          Log.i(TAG, "Applet is installed on the connected card.");
+
           // In real projects, the pairing key should be saved and used for all new sessions.
           cmdSet.autoPair("WalletAppletTest");
+
+          Log.i(TAG, "Pairing with card is done.");
 
           // Opening a Secure Channel is needed for all other applet commands
           cmdSet.autoOpenSecureChannel();
 
+          Log.i(TAG, "Secure channel opened.");
+
           // We send a GET STATUS command, which does not require PIN authentication
           APDUResponse resp = cmdSet.getStatus(WalletAppletCommandSet.GET_STATUS_P1_APPLICATION).checkOK();
 
+          Log.i(TAG, "Got status (response length=" + resp.getData().length + ")." );
+
           // PIN authentication allows execution of privileged commands
           cmdSet.verifyPIN("000000").checkOK();
+
+          Log.i(TAG, "Pin Verified.");
 
           // Cleanup, in a real application you would not unpair and instead keep the pairing key for successive interactions.
           // We also remove all other pairings so that we do not fill all slots with failing runs. Again in real application
@@ -61,7 +66,8 @@ public class MainActivity extends AppCompatActivity {
           cmdSet.unpairOthers();
           cmdSet.autoUnpair();
 
-          Log.i(TAG, "GET STATUS response: " + Hex.toHexString(resp.getData()));
+          Log.i(TAG, "Unpaired.");
+
         } catch (Exception e) {
           Log.e(TAG, e.getMessage());
         }

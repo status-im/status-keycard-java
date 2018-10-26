@@ -6,8 +6,14 @@ import android.nfc.tech.IsoDep;
 import android.os.SystemClock;
 import android.util.Log;
 import java.io.IOException;
+import java.security.Security;
 
 public class CardManager extends Thread implements NfcAdapter.ReaderCallback {
+
+    public CardManager() {
+        Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
+    }
+
     private static final String TAG = "CardManager";
 
     private IsoDep isoDep;
