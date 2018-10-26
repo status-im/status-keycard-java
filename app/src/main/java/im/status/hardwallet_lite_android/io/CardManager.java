@@ -3,11 +3,11 @@ package im.status.hardwallet_lite_android.io;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.tech.IsoDep;
+import android.os.SystemClock;
 import android.util.Log;
 import im.status.hardwallet_lite_android.wallet.WalletAppletCommandSet;
-import org.spongycastle.util.encoders.Hex;
-
 import java.io.IOException;
+import org.spongycastle.util.encoders.Hex;
 
 public class CardManager extends Thread implements NfcAdapter.ReaderCallback {
     private static final String TAG = "CardManager";
@@ -48,12 +48,7 @@ public class CardManager extends Thread implements NfcAdapter.ReaderCallback {
                 }
             }
 
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                Log.e(TAG, "error in TagManager thread: " + e.getMessage());
-                this.interrupt();
-            }
+            SystemClock.sleep(50);
         }
     }
 
