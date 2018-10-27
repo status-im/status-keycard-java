@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="im.status.hardwallet_lite_android">
-
-    <uses-permission android:name="android.permission.NFC" />
-    <uses-feature android:name="android.hardware.nfc.hce" android:required="true" />
+          package="im.status.hardwallet_lite_android.demo">
 
     <application
             android:allowBackup="true"
