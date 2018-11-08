@@ -31,6 +31,7 @@ public class WalletAppletCommandSet {
   static final byte INS_DERIVE_KEY = (byte) 0xD1;
   static final byte INS_GENERATE_MNEMONIC = (byte) 0xD2;
   static final byte INS_REMOVE_KEY = (byte) 0xD3;
+  static final byte INS_GENERATE_KEY = (byte) 0xD4;
   static final byte INS_SIGN = (byte) 0xC0;
   static final byte INS_SET_PINLESS_PATH = (byte) 0xC1;
   static final byte INS_EXPORT_KEY = (byte) 0xC2;
@@ -41,11 +42,10 @@ public class WalletAppletCommandSet {
   static final byte LOAD_KEY_P1_EXT_EC = 0x02;
   static final byte LOAD_KEY_P1_SEED = 0x03;
 
-  static final byte DERIVE_P1_ASSISTED_MASK = 0x01;
   static final byte DERIVE_P1_SOURCE_MASTER = (byte) 0x00;
+  static final byte DERIVE_P1_SOURCE_PARENT = (byte) 0x40;
+  static final byte DERIVE_P1_SOURCE_CURRENT = (byte) 0x80;
 
-  static final byte DERIVE_P2_KEY_PATH = 0x00;
-  static final byte DERIVE_P2_PUBLIC_KEY = 0x01;
 
   static final byte EXPORT_KEY_P2_PRIVATE_AND_PUBLIC = 0x00;
   static final byte EXPORT_KEY_P2_PUBLIC_ONLY = 0x01;
@@ -198,19 +198,6 @@ public class WalletAppletCommandSet {
   }
 
   /**
-   * Sends a GET STATUS APDU to retrieve the APPLICATION STATUS template and reads the byte indicating public key
-   * derivation support.
-   *
-   * @return whether public key derivation is supported or not
-   * @throws IOException communication error
-   */
-  public boolean getPublicKeyDerivationSupport() throws IOException {
-    APDUResponse resp = getStatus(GET_STATUS_P1_APPLICATION);
-    byte[] data = resp.getData();
-    return data[data.length - 1] != 0x00;
-  }
-
-  /**
    * Sends a GET STATUS APDU to retrieve the APPLICATION STATUS template and reads the byte indicating key initialization
    * status
    *
@@ -220,7 +207,7 @@ public class WalletAppletCommandSet {
   public boolean getKeyInitializationStatus() throws IOException {
     APDUResponse resp = getStatus(GET_STATUS_P1_APPLICATION);
     byte[] data = resp.getData();
-    return data[data.length - 4] != 0x00;
+    return data[data.length - 1] != 0x00;
   }
 
   /**
@@ -437,53 +424,50 @@ public class WalletAppletCommandSet {
   }
 
   /**
-   * Sends a SIGN APDU. The dataType is P1 as defined in the applet. The isFirst and isLast arguments are used to form
-   * the P2 parameter. The data is the data to sign, or part of it. Only when sending the last block a signature is
-   * generated and thus returned. When signing a precomputed hash it must be done in a single block, so isFirst and
-   * isLast will always be true at the same time.
+   * Sends a GENERATE KEY APDU.
    *
-   * @param data the data to sign
-   * @param dataType the P1 parameter
-   * @param isFirst whether this is the first block of the command or not
-   * @param isLast whether this is the last block of the command or not
    * @return the raw card response
    * @throws IOException communication error
    */
-  public APDUResponse sign(byte[] data, byte dataType, boolean isFirst, boolean isLast) throws IOException {
-    byte p2 = (byte) ((isFirst ? 0x01 : 0x00) | (isLast ? 0x80 : 0x00));
-    APDUCommand sign = secureChannel.protectedCommand(0x80, INS_SIGN, dataType, p2, data);
+  public APDUResponse generateKey() throws IOException {
+    APDUCommand generateKey = secureChannel.protectedCommand(0x80, INS_GENERATE_KEY, 0, 0, new byte[0]);
+    return secureChannel.transmit(apduChannel, generateKey);
+  }
+
+  /**
+   * Sends a SIGN APDU. This signs a precomputed hash so the input must be exactly 32-bytes long.
+   *
+   * @param data the data to sign
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse sign(byte[] data) throws IOException {
+    APDUCommand sign = secureChannel.protectedCommand(0x80, INS_SIGN, 0x00, 0x00, data);
     return secureChannel.transmit(apduChannel, sign);
   }
 
   /**
-   * Sends a DERIVE KEY APDU. The data is encrypted and sent as-is. The P1 and P2 parameters are forced to 0, meaning
-   * that the derivation starts from the master key and is non-assisted.
+   * Sends a DERIVE KEY APDU. The data is encrypted and sent as-is. The P1 is forced to 0, meaning that the derivation
+   * starts from the master key.
    *
    * @param data the raw key path
    * @return the raw card response
    * @throws IOException communication error
    */
   public APDUResponse deriveKey(byte[] data) throws IOException {
-    return deriveKey(data, DERIVE_P1_SOURCE_MASTER, false, false);
+    return deriveKey(data, DERIVE_P1_SOURCE_MASTER);
   }
 
   /**
-   * Sends a DERIVE KEY APDU. The data is encrypted and sent as-is. The reset and assisted parameters are combined to
-   * form P1. The isPublicKey parameter is used for P2.
+   * Sends a DERIVE KEY APDU. The data is encrypted and sent as-is. The source parameter is used as P1.
    *
    * @param data the raw key path or a public key
    * @param source the source to start derivation
-   * @param assisted whether we are doing assisted derivation or not
-   * @param isPublicKey whether we are sending a public key or a key path (only make sense during assisted derivation)
    * @return the raw card response
    * @throws IOException communication error
    */
-  public APDUResponse deriveKey(byte[] data, int source, boolean assisted, boolean isPublicKey) throws IOException {
-    byte p1 = assisted ? DERIVE_P1_ASSISTED_MASK : 0;
-    p1 |= source;
-    byte p2 = isPublicKey ? DERIVE_P2_PUBLIC_KEY : DERIVE_P2_KEY_PATH;
-
-    APDUCommand deriveKey = secureChannel.protectedCommand(0x80, INS_DERIVE_KEY, p1, p2, data);
+  public APDUResponse deriveKey(byte[] data, int source) throws IOException {
+    APDUCommand deriveKey = secureChannel.protectedCommand(0x80, INS_DERIVE_KEY, source, 0x00, data);
     return secureChannel.transmit(apduChannel, deriveKey);
   }
 
