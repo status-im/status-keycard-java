@@ -24,6 +24,7 @@ import java.util.Arrays;
 public class WalletAppletCommandSet {
   static final byte INS_INIT = (byte) 0xFE;
   static final byte INS_GET_STATUS = (byte) 0xF2;
+  static final byte INS_SET_NDEF = (byte) 0xF3;
   static final byte INS_VERIFY_PIN = (byte) 0x20;
   static final byte INS_CHANGE_PIN = (byte) 0x21;
   static final byte INS_UNBLOCK_PIN = (byte) 0x22;
@@ -195,6 +196,18 @@ public class WalletAppletCommandSet {
   public APDUResponse getStatus(byte info) throws IOException {
     APDUCommand getStatus = secureChannel.protectedCommand(0x80, INS_GET_STATUS, info, 0, new byte[0]);
     return secureChannel.transmit(apduChannel, getStatus);
+  }
+
+  /**
+   * Sends a SET NDEF APDU.
+   *
+   * @param ndef the data field of the APDU
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse setNDEF(byte[] ndef) throws IOException {
+    APDUCommand setNDEF = secureChannel.protectedCommand(0x80, INS_SET_NDEF, 0, 0, ndef);
+    return secureChannel.transmit(apduChannel, setNDEF);
   }
 
   /**
