@@ -39,14 +39,16 @@ public class WalletAppletCommandSet {
 
   public static final byte GET_STATUS_P1_APPLICATION = 0x00;
 
-  static final byte LOAD_KEY_P1_EC = 0x01;
-  static final byte LOAD_KEY_P1_EXT_EC = 0x02;
-  static final byte LOAD_KEY_P1_SEED = 0x03;
+  public static final byte LOAD_KEY_P1_EC = 0x01;
+  public static final byte LOAD_KEY_P1_EXT_EC = 0x02;
+  public static final byte LOAD_KEY_P1_SEED = 0x03;
 
-  static final byte DERIVE_P1_SOURCE_MASTER = (byte) 0x00;
-  static final byte DERIVE_P1_SOURCE_PARENT = (byte) 0x40;
-  static final byte DERIVE_P1_SOURCE_CURRENT = (byte) 0x80;
+  public static final byte DERIVE_P1_SOURCE_MASTER = (byte) 0x00;
+  public static final byte DERIVE_P1_SOURCE_PARENT = (byte) 0x40;
+  public static final byte DERIVE_P1_SOURCE_CURRENT = (byte) 0x80;
 
+  public static final byte EXPORT_KEY_P1_ANY = 0x00;
+  public static final byte EXPORT_KEY_P1_HIGH = 0x01;
 
   static final byte EXPORT_KEY_P2_PRIVATE_AND_PUBLIC = 0x00;
   static final byte EXPORT_KEY_P2_PUBLIC_ONLY = 0x01;
@@ -56,8 +58,8 @@ public class WalletAppletCommandSet {
   static final byte TLV_CHAIN_CODE = (byte) 0x82;
   static final byte TLV_APPLICATION_INFO_TEMPLATE = (byte) 0xA4;
 
-  public static final String APPLET_AID = "53746174757357616C6C6574417070";
-  public static final byte[] APPLET_AID_BYTES = Hex.decode(APPLET_AID);
+  static final String APPLET_AID = "53746174757357616C6C6574417070";
+  static final byte[] APPLET_AID_BYTES = Hex.decode(APPLET_AID);
 
   private final CardChannel apduChannel;
   private SecureChannelSession secureChannel;
