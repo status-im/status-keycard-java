@@ -93,7 +93,7 @@ public class WalletAppletCommandSet {
     if (resp.getSw() == 0x9000) {
       byte[] keyData = extractPublicKeyFromSelect(resp.getData());
       if (this.secureChannel == null) {
-        new SecureChannelSession(keyData);
+        setSecureChannel(new SecureChannelSession(keyData));
       } else {
         this.secureChannel.generateSecret(keyData);
       }
