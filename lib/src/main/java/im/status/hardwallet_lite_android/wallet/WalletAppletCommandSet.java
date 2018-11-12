@@ -68,7 +68,7 @@ public class WalletAppletCommandSet {
     this.apduChannel = apduChannel;
   }
 
-  public void setSecureChannel(SecureChannelSession secureChannel) {
+  protected void setSecureChannel(SecureChannelSession secureChannel) {
     this.secureChannel = secureChannel;
   }
 
@@ -92,7 +92,11 @@ public class WalletAppletCommandSet {
 
     if (resp.getSw() == 0x9000) {
       byte[] keyData = extractPublicKeyFromSelect(resp.getData());
-      this.secureChannel = new SecureChannelSession(keyData);
+      if (this.secureChannel == null) {
+        new SecureChannelSession(keyData);
+      } else {
+        this.secureChannel.generateSecret(keyData);
+      }
     }
 
     return resp;
