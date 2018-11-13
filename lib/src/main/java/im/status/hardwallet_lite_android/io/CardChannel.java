@@ -22,4 +22,8 @@ public class CardChannel {
         Log.d(TAG, String.format("RESPONSE %s %n-----------------------", Hex.toHexString(resp)));
         return new APDUResponse(resp);
     }
+
+    public boolean isConnected() {
+        return this.isoDep.isConnected();
+    }
 }
