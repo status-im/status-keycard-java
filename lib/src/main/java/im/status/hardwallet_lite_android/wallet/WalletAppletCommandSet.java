@@ -58,7 +58,8 @@ public class WalletAppletCommandSet {
   static final byte TLV_CHAIN_CODE = (byte) 0x82;
   static final byte TLV_APPLICATION_INFO_TEMPLATE = (byte) 0xA4;
 
-  static final String APPLET_AID = "53746174757357616C6C6574417070";
+
+  public static final String APPLET_AID = "53746174757357616C6C6574417070";
   static final byte[] APPLET_AID_BYTES = Hex.decode(APPLET_AID);
 
   private final CardChannel apduChannel;
@@ -66,6 +67,7 @@ public class WalletAppletCommandSet {
 
   public WalletAppletCommandSet(CardChannel apduChannel) {
     this.apduChannel = apduChannel;
+    this.secureChannel = new SecureChannelSession();
   }
 
   protected void setSecureChannel(SecureChannelSession secureChannel) {
@@ -79,24 +81,13 @@ public class WalletAppletCommandSet {
    * @return the raw card response
    * @throws IOException communication error
    */
-  /**
-   * Selects the applet. The applet is assumed to have been installed with its default AID. The returned data is a
-   * public key which must be used to initialize the secure channel.
-   *
-   * @return the raw card response
-   * @throws IOException communication error
-   */
   public APDUResponse select() throws IOException {
     APDUCommand selectApplet = new APDUCommand(0x00, 0xA4, 4, 0, APPLET_AID_BYTES);
     APDUResponse resp =  apduChannel.send(selectApplet);
 
     if (resp.getSw() == 0x9000) {
-      byte[] keyData = extractPublicKeyFromSelect(resp.getData());
-      if (this.secureChannel == null) {
-        setSecureChannel(new SecureChannelSession(keyData));
-      } else {
-        this.secureChannel.generateSecret(keyData);
-      }
+      this.secureChannel.generateSecret(extractPublicKeyFromSelect(resp.getData()));
+      this.secureChannel.reset();
     }
 
     return resp;

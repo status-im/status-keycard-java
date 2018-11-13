@@ -53,20 +53,21 @@ public class SecureChannelSession {
   private boolean open;
 
   /**
-   * Constructs a SecureChannel session on the client. The client should generate a fresh key pair for each session.
-   * The public key of the card is used as input for the EC-DH algorithm. The output is stored as the secret.
-   *
-   * @param keyData the public key returned by the applet as response to the SELECT command
+   * Constructs a SecureChannel session on the client.
    */
-  public SecureChannelSession(byte[] keyData) {
+  public SecureChannelSession() {
       random = new SecureRandom();
-      generateSecret(keyData);
       open = false;
   }
 
+  /**
+   * Generates a pairing secret. This should be called before each session. The public key of the card is used as input
+   * for the EC-DH algorithm. The output is stored as the secret.
+   *
+   * @param keyData the public key returned by the applet as response to the SELECT command
+   */
   public void generateSecret(byte[] keyData) {
     try {
-      random = new SecureRandom();
       ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec("secp256k1");
       KeyPairGenerator g = KeyPairGenerator.getInstance("ECDH");
       g.initialize(ecSpec, random);
@@ -281,8 +282,8 @@ public class SecureChannelSession {
    * @throws IOException communication error
    */
   public APDUResponse pair(CardChannel apduChannel, byte p1, byte[] data) throws IOException {
-    APDUCommand openSecureChannel = new APDUCommand(0x80, INS_PAIR, p1, 0, data);
-    return transmit(apduChannel, openSecureChannel);
+    APDUCommand pair = new APDUCommand(0x80, INS_PAIR, p1, 0, data);
+    return transmit(apduChannel, pair);
   }
 
   /**
@@ -294,8 +295,8 @@ public class SecureChannelSession {
    * @throws IOException communication error
    */
   public APDUResponse unpair(CardChannel apduChannel, byte p1) throws IOException {
-    APDUCommand openSecureChannel = protectedCommand(0x80, INS_UNPAIR, p1, 0, new byte[0]);
-    return transmit(apduChannel, openSecureChannel);
+    APDUCommand unpair = protectedCommand(0x80, INS_UNPAIR, p1, 0, new byte[0]);
+    return transmit(apduChannel, unpair);
   }
 
   /**
@@ -308,8 +309,8 @@ public class SecureChannelSession {
   public void unpairOthers(CardChannel apduChannel) throws IOException, APDUException {
     for (int i = 0; i < PAIRING_MAX_CLIENT_COUNT; i++) {
       if (i != pairingIndex) {
-        APDUCommand openSecureChannel = protectedCommand(0x80, INS_UNPAIR, i, 0, new byte[0]);
-        transmit(apduChannel, openSecureChannel).checkOK();
+        APDUCommand unpair = protectedCommand(0x80, INS_UNPAIR, i, 0, new byte[0]);
+        transmit(apduChannel, unpair).checkOK();
       }
     }
   }
@@ -453,7 +454,7 @@ public class SecureChannelSession {
    * would only make things wrong.
    *
    */
-  void setOpen() {
+  protected void setOpen() {
     open = true;
   }
 
