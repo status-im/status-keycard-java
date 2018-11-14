@@ -17,10 +17,11 @@ public class CardChannel {
 
     public APDUResponse send(APDUCommand cmd) throws IOException {
         byte[] apdu = cmd.serialize();
-        Log.d(TAG, String.format("COMMAND  %s", Hex.toHexString(apdu)));
+        Log.d(TAG, String.format("COMMAND CLA: %02X INS: %02X P1: %02X P2: %02X LC: %02X", cmd.getCla(), cmd.getIns(), cmd.getP1(), cmd.getP2(), cmd.getData().length));
         byte[] resp = this.isoDep.transceive(apdu);
-        Log.d(TAG, String.format("RESPONSE %s %n-----------------------", Hex.toHexString(resp)));
-        return new APDUResponse(resp);
+        APDUResponse response = new APDUResponse(resp);
+        Log.d(TAG, String.format("RESPONSE LEN: %02X, SW: %04X %n-----------------------", response.getData().length, response.getSw()));
+        return response;
     }
 
     public boolean isConnected() {

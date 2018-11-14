@@ -17,10 +17,10 @@ public class APDUCommand {
     }
 
     public APDUCommand(int cla, int ins, int p1, int p2, byte[] data, boolean needsLE) {
-        this.cla = cla;
-        this.ins = ins;
-        this.p1 = p1;
-        this.p2 = p2;
+        this.cla = cla & 0xff;
+        this.ins = ins & 0xff;
+        this.p1 = p1 & 0xff;
+        this.p2 = p2 & 0xff;
         this.data = data;
         this.needsLE = needsLE;
     }
