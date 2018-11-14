@@ -5,11 +5,14 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import im.status.hardwallet_lite_android.demo.R;
-import im.status.hardwallet_lite_android.io.APDUResponse;
 import im.status.hardwallet_lite_android.io.CardChannel;
 import im.status.hardwallet_lite_android.io.CardManager;
 import im.status.hardwallet_lite_android.io.OnCardConnectedListener;
+import im.status.hardwallet_lite_android.wallet.ApplicationInfo;
+import im.status.hardwallet_lite_android.wallet.ApplicationStatus;
+import im.status.hardwallet_lite_android.wallet.Pairing;
 import im.status.hardwallet_lite_android.wallet.WalletAppletCommandSet;
+import org.spongycastle.util.encoders.Hex;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,31 +32,52 @@ public class MainActivity extends AppCompatActivity {
       @Override
       public void onConnected(CardChannel cardChannel) {
         try {
-
-          Log.i(TAG, "onCardConnected()");
-
           // Applet-specific code
           WalletAppletCommandSet cmdSet = new WalletAppletCommandSet(cardChannel);
 
-          // First thing to do is selecting the applet on the card.
-          cmdSet.select().checkOK();
+          Log.i(TAG, "Applet selection successful");
 
-          Log.i(TAG, "Applet is installed on the connected card.");
+          // First thing to do is selecting the applet on the card.
+          ApplicationInfo info = new ApplicationInfo(cmdSet.select().checkOK().getData());
+
+          // If the card is not initialized, the INIT apdu must be sent. The actual PIN, PUK and pairing password values
+          // can be either generated or chosen by the user. Using fixed values is highly discouraged.
+          if (!info.isInitializedCard()) {
+            Log.i(TAG, "Initializing card with test secrets");
+            cmdSet.init("000000", "123456789012", "WalletAppletTest").checkOK();
+            info = new ApplicationInfo(cmdSet.select().checkOK().getData());
+          }
+
+          Log.i(TAG, "Instance UID: " + Hex.toHexString(info.getInstanceUID()));
+          Log.i(TAG, "Secure channel public key: " + Hex.toHexString(info.getSecureChannelPubKey()));
+          Log.i(TAG, "Application version: " + info.getAppVersionString());
+          Log.i(TAG, "Free pairing slots: " + info.getFreePairingSlots());
+          if (info.hasMasterKey()) {
+            Log.i(TAG, "Key UID: " + Hex.toHexString(info.getKeyUID()));
+          } else {
+            Log.i(TAG, "The card has no master key");
+          }
 
           // In real projects, the pairing key should be saved and used for all new sessions.
           cmdSet.autoPair("WalletAppletTest");
+          Pairing pairing = cmdSet.getPairing();
 
+          // Never log the pairing key in a real application
           Log.i(TAG, "Pairing with card is done.");
+          Log.i(TAG, "Pairing index: " + pairing.getPairingIndex());
+          Log.i(TAG, "Pairing key: " + Hex.toHexString(pairing.getPairingKey()));
 
           // Opening a Secure Channel is needed for all other applet commands
           cmdSet.autoOpenSecureChannel();
 
-          Log.i(TAG, "Secure channel opened.");
+          Log.i(TAG, "Secure channel opened. Getting applet status.");
 
           // We send a GET STATUS command, which does not require PIN authentication
-          APDUResponse resp = cmdSet.getStatus(WalletAppletCommandSet.GET_STATUS_P1_APPLICATION).checkOK();
+          ApplicationStatus status = new ApplicationStatus(cmdSet.getStatus(WalletAppletCommandSet.GET_STATUS_P1_APPLICATION).checkOK().getData());
 
-          Log.i(TAG, "Got status (response length=" + resp.getData().length + ")." );
+          Log.i(TAG, "PIN retry counter: " + status.getPINRetryCount());
+          Log.i(TAG, "PUK retry counter: " + status.getPUKRetryCount());
+          Log.i(TAG, "Has master key: " + status.hasMasterKey());
 
           // PIN authentication allows execution of privileged commands
           cmdSet.verifyPIN("000000").checkOK();

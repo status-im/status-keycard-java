@@ -124,6 +124,18 @@ public class WalletAppletCommandSet {
    * @throws IOException communication error
    */
   public void autoPair(String pairingPassword) throws IOException {
+    byte[] secret = pairingPasswordToSecret(pairingPassword);
+
+    secureChannel.autoPair(apduChannel, secret);
+  }
+
+  /**
+   * Converts a pairing password to a binary pairing secret.
+   *
+   * @param pairingPassword the pairing password
+   * @return the pairing secret
+   */
+  public byte[] pairingPasswordToSecret(String pairingPassword) {
     SecretKey key;
 
     try {
@@ -133,8 +145,7 @@ public class WalletAppletCommandSet {
     } catch (Exception e) {
       throw new RuntimeException("Is Bouncycastle correctly initialized?");
     }
-
-    secureChannel.autoPair(apduChannel, key.getEncoded());
+    return key.getEncoded();
   }
 
   /**
@@ -220,19 +231,6 @@ public class WalletAppletCommandSet {
   public APDUResponse setNDEF(byte[] ndef) throws IOException {
     APDUCommand setNDEF = secureChannel.protectedCommand(0x80, INS_SET_NDEF, 0, 0, ndef);
     return secureChannel.transmit(apduChannel, setNDEF);
-  }
-
-  /**
-   * Sends a GET STATUS APDU to retrieve the APPLICATION STATUS template and reads the byte indicating key initialization
-   * status
-   *
-   * @return whether public key derivation is supported or not
-   * @throws IOException communication error
-   */
-  public boolean getKeyInitializationStatus() throws IOException {
-    APDUResponse resp = getStatus(GET_STATUS_P1_APPLICATION);
-    byte[] data = resp.getData();
-    return data[data.length - 1] != 0x00;
   }
 
   /**
@@ -527,6 +525,19 @@ public class WalletAppletCommandSet {
    *
    * @param pin the PIN
    * @param puk the PUK
+   * @param pairingPassword pairing password
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse init(String pin, String puk, String pairingPassword) throws IOException {
+    return this.init(pin, puk, pairingPasswordToSecret(pairingPassword));
+  }
+
+  /**
+   * Sends the INIT command to the card.
+   *
+   * @param pin the PIN
+   * @param puk the PUK
    * @param sharedSecret the shared secret for pairing
    * @return the raw card response
    * @throws IOException communication error
@@ -540,12 +551,6 @@ public class WalletAppletCommandSet {
   }
 
   private byte[] extractPublicKeyFromSelect(byte[] select) {
-    if (select[0] == TLV_APPLICATION_INFO_TEMPLATE) {
-      return Arrays.copyOfRange(select, 22, 22 + select[21]);
-    } else if (select[0] == TLV_PUB_KEY) {
-      return Arrays.copyOfRange(select, 2, select.length);
-    } else {
-      throw new RuntimeException("Unexpected card response");
-    }
+    return new ApplicationInfo(select).getSecureChannelPubKey();
   }
 }
