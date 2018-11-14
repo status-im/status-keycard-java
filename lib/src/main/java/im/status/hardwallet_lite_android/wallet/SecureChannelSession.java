@@ -42,9 +42,8 @@ public class SecureChannelSession {
 
   private byte[] secret;
   private byte[] publicKey;
-  private byte[] pairingKey;
   private byte[] iv;
-  private byte pairingIndex;
+  private Pairing pairing;
   private Cipher sessionCipher;
   private CBCBlockCipherMac sessionMac;
   private SecretKeySpec sessionEncKey;
@@ -97,11 +96,19 @@ public class SecureChannelSession {
   }
 
   /**
-   * Returns the pairing index
-   * @return the pairing index
+   * Returns the pairing information
+   * @return the pairing information
    */
-  public byte getPairingIndex() {
-    return pairingIndex;
+  public Pairing getPairing() {
+    return pairing;
+  }
+
+  /**
+   * Sets pairing information needed to open a secure channel.
+   * @param pairing the pairing information
+   */
+  public void setPairing(Pairing pairing) {
+    this.pairing = pairing;
   }
 
   /**
@@ -113,7 +120,7 @@ public class SecureChannelSession {
    * @throws IOException communication error
    */
   public void autoOpenSecureChannel(CardChannel apduChannel) throws IOException {
-    APDUResponse response = openSecureChannel(apduChannel, pairingIndex, publicKey);
+    APDUResponse response = openSecureChannel(apduChannel, pairing.getPairingIndex(), publicKey);
 
     if (response.getSw() != 0x9000) {
       throw new IOException("OPEN SECURE CHANNEL failed");
@@ -141,7 +148,7 @@ public class SecureChannelSession {
     try {
       MessageDigest md = MessageDigest.getInstance("SHA512");
       md.update(secret);
-      md.update(pairingKey);
+      md.update(pairing.getPairingKey());
       byte[] data = response.getData();
       byte[] keyData = md.digest(Arrays.copyOf(data, SC_SECRET_LENGTH));
       iv = Arrays.copyOfRange(data, SC_SECRET_LENGTH, data.length);
@@ -212,8 +219,7 @@ public class SecureChannelSession {
 
     respData = resp.getData();
     md.update(sharedSecret);
-    pairingKey = md.digest(Arrays.copyOfRange(respData, 1, respData.length));
-    pairingIndex = respData[0];
+    pairing = new Pairing(md.digest(Arrays.copyOfRange(respData, 1, respData.length)), respData[0]);
   }
 
   /**
@@ -223,7 +229,7 @@ public class SecureChannelSession {
    * @throws IOException communication error
    */
   public void autoUnpair(CardChannel apduChannel) throws IOException {
-    APDUResponse resp = unpair(apduChannel, pairingIndex);
+    APDUResponse resp = unpair(apduChannel, pairing.getPairingIndex());
 
     if (resp.getSw() != 0x9000) {
       throw new IOException("Unpairing failed");
@@ -308,7 +314,7 @@ public class SecureChannelSession {
    */
   public void unpairOthers(CardChannel apduChannel) throws IOException, APDUException {
     for (int i = 0; i < PAIRING_MAX_CLIENT_COUNT; i++) {
-      if (i != pairingIndex) {
+      if (i != pairing.getPairingIndex()) {
         APDUCommand unpair = protectedCommand(0x80, INS_UNPAIR, i, 0, new byte[0]);
         transmit(apduChannel, unpair).checkOK();
       }

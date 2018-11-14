@@ -75,6 +75,21 @@ public class WalletAppletCommandSet {
   }
 
   /**
+   * Returns the current pairing data.
+   */
+  public Pairing getPairing() {
+    return secureChannel.getPairing();
+  }
+
+  /**
+   * Sets the pairing data.
+   * @param pairing data from an existing pairing
+   */
+  public void setPairing(Pairing pairing) {
+    secureChannel.setPairing(pairing);
+  }
+
+  /**
    * Selects the applet. The applet is assumed to have been installed with its default AID. The returned data is a
    * public key which must be used to initialize the secure channel.
    *
