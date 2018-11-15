@@ -8,10 +8,7 @@ import im.status.hardwallet_lite_android.demo.R;
 import im.status.hardwallet_lite_android.io.CardChannel;
 import im.status.hardwallet_lite_android.io.CardManager;
 import im.status.hardwallet_lite_android.io.OnCardConnectedListener;
-import im.status.hardwallet_lite_android.wallet.ApplicationInfo;
-import im.status.hardwallet_lite_android.wallet.ApplicationStatus;
-import im.status.hardwallet_lite_android.wallet.Pairing;
-import im.status.hardwallet_lite_android.wallet.WalletAppletCommandSet;
+import im.status.hardwallet_lite_android.wallet.*;
 import org.spongycastle.util.encoders.Hex;
 
 public class MainActivity extends AppCompatActivity {
@@ -62,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
           cmdSet.autoPair("WalletAppletTest");
           Pairing pairing = cmdSet.getPairing();
 
-          // Never log the pairing key in a real application
+          // Never log the pairing key in a real application!
           Log.i(TAG, "Pairing with card is done.");
           Log.i(TAG, "Pairing index: " + pairing.getPairingIndex());
           Log.i(TAG, "Pairing key: " + Hex.toHexString(pairing.getPairingKey()));
@@ -83,6 +80,27 @@ public class MainActivity extends AppCompatActivity {
           cmdSet.verifyPIN("000000").checkOK();
 
           Log.i(TAG, "Pin Verified.");
+
+          // If the card has no keys, we generate a new set. Keys can also be loaded on the card starting from a binary
+          // seed generated from a mnemonic phrase. The card can also generate mnemonics.
+          if (!status.hasMasterKey()) {
+            cmdSet.generateKey();
+          }
+
+          // Key derivation is needed to select the desired key. The derived key remains current until a new derive
+          // command is sent (it is not lost on power loss). With GET STATUS one can retrieve the current path.
+          cmdSet.deriveKey("m/44'/0'/0'/0/0").checkOK();
+
+          Log.i(TAG, "Derived m/44'/0'/0'/0/0");
+
+          byte[] hash = "thiscouldbeahashintheorysoitisok".getBytes();
+
+          RecoverableSignature signature = new RecoverableSignature(hash, cmdSet.sign(hash).checkOK().getData());
+
+          Log.i(TAG, "Signed hash: " + Hex.toHexString(hash));
+          Log.i(TAG, "Recovery ID: " + signature.getRecId());
+          Log.i(TAG, "R: " + Hex.toHexString(signature.getR()));
+          Log.i(TAG, "S: " + Hex.toHexString(signature.getS()));
 
           // Cleanup, in a real application you would not unpair and instead keep the pairing key for successive interactions.
           // We also remove all other pairings so that we do not fill all slots with failing runs. Again in real application

@@ -470,6 +470,18 @@ public class WalletAppletCommandSet {
   }
 
   /**
+   * Sends a DERIVE KEY APDU with the given key path.
+   *
+   * @param keypath the string key path
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse deriveKey(String keypath) throws IOException {
+    KeyPath path = new KeyPath(keypath);
+    return deriveKey(path.getData(), path.getSource());
+  }
+
+  /**
    * Sends a DERIVE KEY APDU. The data is encrypted and sent as-is. The P1 is forced to 0, meaning that the derivation
    * starts from the master key.
    *
