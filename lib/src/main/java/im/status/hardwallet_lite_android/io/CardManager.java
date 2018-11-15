@@ -53,24 +53,23 @@ public class CardManager extends Thread implements NfcAdapter.ReaderCallback {
                 }
             }
 
-            SystemClock.sleep(50);
+            SystemClock.sleep(loopSleepMS);
         }
     }
 
     private void onCardConnected() {
         isRunning = true;
-
-        onCardConnectedListener.onConnected(new CardChannel(isoDep));
-
+        cardListener.onConnected(new CardChannel(isoDep));
         isRunning = false;
     }
 
     private void onCardDisconnected() {
         isRunning = false;
         isoDep = null;
+        cardListener.onDisconnected();
     }
 
-    public void setOnCardConnectedListener(OnCardConnectedListener onConnectedListener) {
-        onCardConnectedListener = onConnectedListener;
+    public void setCardListener(CardListener listener) {
+        cardListener = listener;
     }
 }

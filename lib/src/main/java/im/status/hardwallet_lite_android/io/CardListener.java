@@ -1,5 +1,6 @@
 package im.status.hardwallet_lite_android.io;
 
-public interface OnCardConnectedListener {
+public interface CardListener {
     void onConnected(CardChannel channel);
+    void onDisconnected();
 }
