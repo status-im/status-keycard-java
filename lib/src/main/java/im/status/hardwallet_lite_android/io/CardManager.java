@@ -7,27 +7,34 @@ import android.os.SystemClock;
 import android.util.Log;
 import java.io.IOException;
 import java.security.Security;
+import java.util.logging.Logger;
 
 public class CardManager extends Thread implements NfcAdapter.ReaderCallback {
 
-    public CardManager() {
-        Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
-    }
-
     private static final String TAG = "CardManager";
+    private static final int DEFAULT_LOOP_SLEEP_MS = 50;
 
     private IsoDep isoDep;
     private boolean isRunning;
-    private OnCardConnectedListener onCardConnectedListener;
+    private CardListener cardListener;
+    private int loopSleepMS;
 
     public boolean isConnected() {
         return isoDep != null && isoDep.isConnected();
     }
 
+    public CardManager() {
+        this(DEFAULT_LOOP_SLEEP_MS);
+    }
+
+    public CardManager(int loopSleepMS) {
+        this.loopSleepMS = loopSleepMS;
+        Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
+    }
+
     @Override
     public void onTagDiscovered(Tag tag) {
         isoDep = IsoDep.get(tag);
-
         try {
             isoDep = IsoDep.get(tag);
             isoDep.connect();
