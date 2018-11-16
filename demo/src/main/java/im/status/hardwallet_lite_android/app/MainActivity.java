@@ -6,8 +6,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import im.status.hardwallet_lite_android.demo.R;
 import im.status.hardwallet_lite_android.io.CardChannel;
+import im.status.hardwallet_lite_android.io.CardListener;
 import im.status.hardwallet_lite_android.io.CardManager;
-import im.status.hardwallet_lite_android.io.OnCardConnectedListener;
 import im.status.hardwallet_lite_android.wallet.*;
 import org.spongycastle.util.encoders.Hex;
 
@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
     nfcAdapter = NfcAdapter.getDefaultAdapter(this);
     cardManager = new CardManager();
 
-    cardManager.setOnCardConnectedListener(new OnCardConnectedListener() {
+    cardManager.setCardListener(new CardListener() {
       @Override
       public void onConnected(CardChannel cardChannel) {
         try {
@@ -87,11 +87,16 @@ public class MainActivity extends AppCompatActivity {
             cmdSet.generateKey();
           }
 
-          // Key derivation is needed to select the desired key. The derived key remains current until a new derive
-          // command is sent (it is not lost on power loss). With GET STATUS one can retrieve the current path.
-          cmdSet.deriveKey("m/44'/0'/0'/0/0").checkOK();
+          // Get the current key path using GET STATUS
+          KeyPath currentPath = new KeyPath(cmdSet.getStatus(WalletAppletCommandSet.GET_STATUS_P1_KEY_PATH).checkOK().getData());
+          Log.i(TAG, "Current key path: " + currentPath);
 
-          Log.i(TAG, "Derived m/44'/0'/0'/0/0");
+          if (!currentPath.toString().equals("m/44'/0'/0'/0/0")) {
+            // Key derivation is needed to select the desired key. The derived key remains current until a new derive
+            // command is sent (it is not lost on power loss).
+            cmdSet.deriveKey("m/44'/0'/0'/0/0").checkOK();
+            Log.i(TAG, "Derived m/44'/0'/0'/0/0");
+          }
 
           byte[] hash = "thiscouldbeahashintheorysoitisok".getBytes();
 
@@ -114,6 +119,11 @@ public class MainActivity extends AppCompatActivity {
           Log.e(TAG, e.getMessage());
         }
 
+      }
+
+      @Override
+      public void onDisconnected() {
+        Log.i(TAG, "Card disconnected.");
       }
     });
     cardManager.start();

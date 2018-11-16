@@ -26,7 +26,6 @@ public class KeyPath {
    * @param keypath the keypath as a string
    */
   public KeyPath(String keypath) {
-    data = new byte[40];
     StringTokenizer tokenizer = new StringTokenizer(keypath, "/");
 
     String sourceOrFirstElement = tokenizer.nextToken();
@@ -52,10 +51,21 @@ public class KeyPath {
       throw new IllegalArgumentException("Too many components");
     }
 
+    data = new byte[4 * componentCount];
+
     for (int i = 0; i < componentCount; i++) {
       long component = parseComponent(tokenizer.nextToken());
       writeComponent(component, i);
     }
+  }
+
+  public KeyPath(byte[] data, int source) {
+    this.data = data;
+    this.source = source;
+  }
+
+  public KeyPath(byte[] data) {
+    this(data, WalletAppletCommandSet.DERIVE_P1_SOURCE_MASTER);
   }
 
   private long parseComponent(String num) {
@@ -98,5 +108,38 @@ public class KeyPath {
    */
   public byte[] getData() {
     return data;
+  }
+
+  @Override
+  public String toString() {
+    StringBuffer sb = new StringBuffer();
+
+    switch(source) {
+      case WalletAppletCommandSet.DERIVE_P1_SOURCE_MASTER:
+        sb.append('m');
+        break;
+      case WalletAppletCommandSet.DERIVE_P1_SOURCE_PARENT:
+        sb.append("..");
+        break;
+      case WalletAppletCommandSet.DERIVE_P1_SOURCE_CURRENT:
+        sb.append('.');
+        break;
+    }
+
+    for (int i = 0; i < this.data.length; i += 4) {
+      sb.append('/');
+      appendComponent(sb, i);
+    }
+
+    return sb.toString();
+  }
+
+  private void appendComponent(StringBuffer sb, int i) {
+    int num = ((this.data[i] & 0x7f) << 24) | ((this.data[i+1] & 0xff) << 16) | ((this.data[i+2] & 0xff) << 8) | (this.data[i+3] & 0xff);
+    sb.append(num);
+
+    if ((this.data[i] & 0x80) == 0x80) {
+      sb.append('\'');
+    }
   }
 }

@@ -38,6 +38,7 @@ public class WalletAppletCommandSet {
   static final byte INS_EXPORT_KEY = (byte) 0xC2;
 
   public static final byte GET_STATUS_P1_APPLICATION = 0x00;
+  public static final byte GET_STATUS_P1_KEY_PATH = 0x01;
 
   public static final byte LOAD_KEY_P1_EC = 0x01;
   public static final byte LOAD_KEY_P1_EXT_EC = 0x02;
