@@ -1,12 +1,12 @@
 package im.status.hardwallet_lite_android.io;
 
 public class APDUResponse {
-    public static int SW_OK = 0x9000;
-    public static int SW_SECURITY_CONDITION_NOT_SATISFIED = 0x6982;
-    public static int SW_AUTHENTICATION_METHOD_BLOCKED = 0x6983;
-    public static int SW_CARD_LOCKED = 0x6283;
-    public static int SW_REFERENCED_DATA_NOT_FOUND = 0x6A88;
-    public static int SW_CONDITIONS_OF_USE_NOT_SATISFIED = 0x6985; // applet may be already installed
+    public static final int SW_OK = 0x9000;
+    public static final int SW_SECURITY_CONDITION_NOT_SATISFIED = 0x6982;
+    public static final int SW_AUTHENTICATION_METHOD_BLOCKED = 0x6983;
+    public static final int SW_CARD_LOCKED = 0x6283;
+    public static final int SW_REFERENCED_DATA_NOT_FOUND = 0x6A88;
+    public static final int SW_CONDITIONS_OF_USE_NOT_SATISFIED = 0x6985; // applet may be already installed
 
     private byte[] apdu;
     private byte[] data;
@@ -39,7 +39,15 @@ public class APDUResponse {
 
     public APDUResponse checkOK() throws APDUException {
         if (!isOK()) {
-            throw new APDUException(this.getSw(),  "Unexpected error SW");
+            switch (this.sw) {
+                case SW_SECURITY_CONDITION_NOT_SATISFIED:
+                    throw new APDUException(this.sw, "security condition not satisfied");
+                case SW_AUTHENTICATION_METHOD_BLOCKED:
+                    throw new APDUException(this.sw, "authentication method blocked");
+                default:
+                    throw new APDUException(this.sw,  "Unexpected error SW");
+            }
+
         }
 
         return this;
