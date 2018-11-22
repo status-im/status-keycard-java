@@ -15,7 +15,7 @@ public class SecureChannel {
     public static byte[] DERIVATION_PURPOSE_MAC = new byte[]{(byte) 0x01, (byte) 0x01};
     public static byte[] DERIVATION_PURPOSE_DEK = new byte[]{(byte) 0x01, (byte) 0x81};
 
-    public SecureChannel(CardChannel channel, Keys keys) {
+    public SecureChannel(CardChannel channel, SCP02Keys keys) {
         this.channel = channel;
         this.wrapper = new SCP02Wrapper(keys.getMacKeyData());
     }
@@ -25,7 +25,7 @@ public class SecureChannel {
         return this.channel.send(wrappedCommand);
     }
 
-    public static Session verifyChallenge(byte[] hostChallenge, Keys cardKeys, APDUResponse resp) throws APDUException {
+    public static Session verifyChallenge(byte[] hostChallenge, SCP02Keys cardKeys, APDUResponse resp) throws APDUException {
         if (resp.getSw() == APDUResponse.SW_SECURITY_CONDITION_NOT_SATISFIED) {
             throw new APDUException(resp.getSw(), "security condition not satisfied");
         }
@@ -52,7 +52,7 @@ public class SecureChannel {
         byte[] sessionEncKey = Crypto.deriveSCP02SessionKey(cardKeys.getEncKeyData(), seq, DERIVATION_PURPOSE_ENC);
         byte[] sessionMacKey = Crypto.deriveSCP02SessionKey(cardKeys.getMacKeyData(), seq, DERIVATION_PURPOSE_MAC);
 
-        Keys sessionKeys = new Keys(sessionEncKey, sessionMacKey);
+        SCP02Keys sessionKeys = new SCP02Keys(sessionEncKey, sessionMacKey);
 
         boolean verified = Crypto.verifyCryptogram(sessionKeys.getEncKeyData(), hostChallenge, cardChallenge, cardCryptogram);
         if (!verified) {

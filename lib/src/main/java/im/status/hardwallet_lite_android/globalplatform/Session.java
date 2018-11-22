@@ -1,15 +1,15 @@
 package im.status.hardwallet_lite_android.globalplatform;
 
 public class Session {
-    private Keys keys;
+    private SCP02Keys keys;
     private byte[] cardChallenge;
 
-    public Session(Keys keys, byte[] cardChallenge) {
+    public Session(SCP02Keys keys, byte[] cardChallenge) {
         this.keys = keys;
         this.cardChallenge = cardChallenge;
     }
 
-    public Keys getKeys() {
+    public SCP02Keys getKeys() {
         return keys;
     }
 

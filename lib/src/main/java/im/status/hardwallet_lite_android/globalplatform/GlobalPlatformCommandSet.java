@@ -20,7 +20,7 @@ public class GlobalPlatformCommandSet {
 
     private final CardChannel apduChannel;
     private SecureChannel secureChannel;
-    private Keys cardKeys;
+    private SCP02Keys cardKeys;
     private Session session;
 
     private final byte[] testKey = Hex.decode("404142434445464748494a4b4c4d4e4f");
@@ -32,7 +32,7 @@ public class GlobalPlatformCommandSet {
 
     public GlobalPlatformCommandSet(CardChannel apduChannel) {
         this.apduChannel = apduChannel;
-        this.cardKeys = new Keys(testKey, testKey);
+        this.cardKeys = new SCP02Keys(testKey, testKey);
     }
 
     public APDUResponse select() throws IOException {
