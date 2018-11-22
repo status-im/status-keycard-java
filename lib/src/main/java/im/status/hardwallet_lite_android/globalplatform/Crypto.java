@@ -1,4 +1,4 @@
-package im.status.hardwallet_lite_android.smartcard;
+package im.status.hardwallet_lite_android.globalplatform;
 
 import android.util.Base64;
 

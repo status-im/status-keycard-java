@@ -1,17 +1,13 @@
-package im.status.hardwallet_lite_android.smartcard;
-
-import android.util.Log;
+package im.status.hardwallet_lite_android.globalplatform;
 
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
-import java.util.logging.Logger;
 
 import im.status.hardwallet_lite_android.io.APDUCommand;
 import im.status.hardwallet_lite_android.io.APDUException;
 import im.status.hardwallet_lite_android.io.APDUResponse;
 import im.status.hardwallet_lite_android.io.CardChannel;
-import im.status.hardwallet_lite_android.wallet.TinyBERTLV;
 
 public class GlobalPlatformCommandSet {
     static final byte INS_SELECT = (byte) 0xA4;

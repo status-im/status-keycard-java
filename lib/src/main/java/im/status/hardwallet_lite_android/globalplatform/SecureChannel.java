@@ -1,4 +1,4 @@
-package im.status.hardwallet_lite_android.smartcard;
+package im.status.hardwallet_lite_android.globalplatform;
 
 import java.io.IOException;
 
@@ -27,7 +27,7 @@ public class SecureChannel {
 
     public static Session verifyChallenge(byte[] hostChallenge, Keys cardKeys, APDUResponse resp) throws APDUException {
         if (resp.getSw() == APDUResponse.SW_SECURITY_CONDITION_NOT_SATISFIED) {
-            throw new APDUException(resp.getSw(), "security confition not satisfied");
+            throw new APDUException(resp.getSw(), "security condition not satisfied");
         }
 
         if (resp.getSw() == APDUResponse.SW_AUTHENTICATION_METHOD_BLOCKED) {

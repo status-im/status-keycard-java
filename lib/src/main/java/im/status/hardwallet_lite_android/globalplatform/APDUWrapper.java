@@ -1,8 +1,7 @@
-package im.status.hardwallet_lite_android.smartcard;
+package im.status.hardwallet_lite_android.globalplatform;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.Arrays;
 
 import im.status.hardwallet_lite_android.io.APDUCommand;

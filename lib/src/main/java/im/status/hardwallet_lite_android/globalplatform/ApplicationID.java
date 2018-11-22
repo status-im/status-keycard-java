@@ -1,8 +1,4 @@
-package im.status.hardwallet_lite_android.smartcard;
-
-import android.util.Log;
-
-import org.spongycastle.util.encoders.Hex;
+package im.status.hardwallet_lite_android.globalplatform;
 
 import im.status.hardwallet_lite_android.wallet.TinyBERTLV;
 
