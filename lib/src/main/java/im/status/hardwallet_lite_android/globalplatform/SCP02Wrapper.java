@@ -6,11 +6,11 @@ import java.util.Arrays;
 
 import im.status.hardwallet_lite_android.io.APDUCommand;
 
-public class APDUWrapper {
+public class SCP02Wrapper {
     private byte[] macKeyData;
     private byte[] icv;
 
-    public APDUWrapper(byte[] macKeyData) {
+    public SCP02Wrapper(byte[] macKeyData) {
         this.macKeyData = macKeyData;
         this.icv = Crypto.NullBytes8.clone();
     }

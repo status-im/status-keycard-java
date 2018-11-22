@@ -9,7 +9,7 @@ import im.status.hardwallet_lite_android.io.CardChannel;
 
 public class SecureChannel {
     private CardChannel channel;
-    private APDUWrapper wrapper;
+    private SCP02Wrapper wrapper;
 
     public static byte[] DERIVATION_PURPOSE_ENC = new byte[]{(byte) 0x01, (byte) 0x82};
     public static byte[] DERIVATION_PURPOSE_MAC = new byte[]{(byte) 0x01, (byte) 0x01};
@@ -17,7 +17,7 @@ public class SecureChannel {
 
     public SecureChannel(CardChannel channel, Keys keys) {
         this.channel = channel;
-        this.wrapper = new APDUWrapper(keys.getMacKeyData());
+        this.wrapper = new SCP02Wrapper(keys.getMacKeyData());
     }
 
     public APDUResponse send(APDUCommand cmd) throws IOException {
