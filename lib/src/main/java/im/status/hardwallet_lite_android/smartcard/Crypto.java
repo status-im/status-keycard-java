@@ -52,10 +52,8 @@ public class Crypto {
     }
 
     public static byte[] appendDESPadding(byte[] data) {
-        int length = data.length + 1;
-        for (; length % 8 != 0; length++){
-        }
-        byte[] newData = new byte[length];
+        int paddingLength = 8 - (data.length % 8);
+        byte[] newData = new byte[data.length + paddingLength];
         System.arraycopy(data, 0, newData, 0, data.length);
         newData[data.length] = (byte)0x80;
 
@@ -160,7 +158,6 @@ public class Crypto {
     }
 
     public static String randomToken(int length) {
-
         return Base64.encodeToString(randomBytes(length),NO_PADDING);
     }
 }
