@@ -135,15 +135,6 @@ public class Crypto {
         }
     }
 
-    public static byte[] generatePairingKey(char[] pairing) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        String salt = "Status Hardware Wallet Lite";
-        PBEKeySpec spec = new PBEKeySpec(pairing, salt.getBytes(), 50000, 32*8);
-        SecretKey key = skf.generateSecret(spec);
-
-        return key.getEncoded();
-    }
-
     public static byte[] randomBytes(int length) {
         SecureRandom random = new SecureRandom();
         byte data[] = new byte[length];
