@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
           // commented line of code.
           if (!status.hasMasterKey()) {
             cmdSet.generateKey();
-            //cmdSet.loadKey(mnemonic.toBinarySeed(), WalletAppletCommandSet.LOAD_KEY_P1_SEED);
+            //cmdSet.loadKey(mnemonic.toBinarySeed());
           }
 
           // Get the current key path using GET STATUS

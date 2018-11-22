@@ -293,31 +293,16 @@ public class WalletAppletCommandSet {
   }
 
   /**
-   * Sends a LOAD KEY APDU. The given private key and chain code are formatted as a raw binary seed and the P1 of
-   * the command is set to LOAD_KEY_P1_SEED (0x03). This works on cards which support public key derivation.
-   * The loaded keyset is extended and support further key derivation.
+   * Sends a LOAD KEY APDU. The given seed is sent as-is and the P1 of the command is set to LOAD_KEY_P1_SEED (0x03).
+   * This works on cards which support public key derivation. The loaded keyset is extended and support further
+   * key derivation.
    *
-   * @param aPrivate a private key
-   * @param chainCode the chain code
+   * @param seed the binary seed
    * @return the raw card response
    * @throws IOException communication error
    */
-  public APDUResponse loadKey(PrivateKey aPrivate, byte[] chainCode) throws IOException {
-    byte[] privateKey = ((ECPrivateKey) aPrivate).getD().toByteArray();
-
-    int privLen = privateKey.length;
-    int privOff = 0;
-
-    if(privateKey[0] == 0x00) {
-      privOff++;
-      privLen--;
-    }
-
-    byte[] data = new byte[chainCode.length + privLen];
-    System.arraycopy(privateKey, privOff, data, 0, privLen);
-    System.arraycopy(chainCode, 0, data, privLen, chainCode.length);
-
-    return loadKey(data, LOAD_KEY_P1_SEED);
+  public APDUResponse loadKey(byte[] seed) throws IOException {
+    return loadKey(seed, LOAD_KEY_P1_SEED);
   }
 
   /**
