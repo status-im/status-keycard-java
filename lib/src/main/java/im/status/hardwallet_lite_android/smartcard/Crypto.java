@@ -28,7 +28,7 @@ public class Crypto {
     public static long PIN_BOUND = 999999L;
     public static long PUK_BOUND = 999999999999L;
 
-    public static byte[] deriveKey(byte[] cardKey, byte[] seq, byte[] purposeData) {
+    public static byte[] deriveSCP02SessionKey(byte[] cardKey, byte[] seq, byte[] purposeData) {
         byte[] key24 = resizeKey24(cardKey);
 
         try {

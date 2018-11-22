@@ -49,8 +49,8 @@ public class SecureChannel {
         byte[] seq = new byte[2];
         System.arraycopy(data, 12, seq, 0, 2);
 
-        byte[] sessionEncKey = Crypto.deriveKey(cardKeys.getEncKeyData(), seq, DERIVATION_PURPOSE_ENC);
-        byte[] sessionMacKey = Crypto.deriveKey(cardKeys.getMacKeyData(), seq, DERIVATION_PURPOSE_MAC);
+        byte[] sessionEncKey = Crypto.deriveSCP02SessionKey(cardKeys.getEncKeyData(), seq, DERIVATION_PURPOSE_ENC);
+        byte[] sessionMacKey = Crypto.deriveSCP02SessionKey(cardKeys.getMacKeyData(), seq, DERIVATION_PURPOSE_MAC);
 
         Keys sessionKeys = new Keys(sessionEncKey, sessionMacKey);
 
