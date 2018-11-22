@@ -48,6 +48,12 @@ public class WalletAppletCommandSet {
   public static final byte DERIVE_P1_SOURCE_PARENT = (byte) 0x40;
   public static final byte DERIVE_P1_SOURCE_CURRENT = (byte) 0x80;
 
+  public static final int GENERATE_MNEMONIC_12_WORDS = 0x04;
+  public static final int GENERATE_MNEMONIC_15_WORDS = 0x05;
+  public static final int GENERATE_MNEMONIC_18_WORDS = 0x06;
+  public static final int GENERATE_MNEMONIC_21_WORDS = 0x07;
+  public static final int GENERATE_MNEMONIC_24_WORDS = 0x08;
+
   public static final byte EXPORT_KEY_P1_ANY = 0x00;
   public static final byte EXPORT_KEY_P1_HIGH = 0x01;
 

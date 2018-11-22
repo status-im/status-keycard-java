@@ -76,15 +76,29 @@ public class MainActivity extends AppCompatActivity {
           Log.i(TAG, "PUK retry counter: " + status.getPUKRetryCount());
           Log.i(TAG, "Has master key: " + status.hasMasterKey());
 
+          // A mnemonic can be generated before PIN authentication. Generating a mnemonic does not create keys on the
+          // card. a subsequent loadKey step must be performed after PIN authentication. In this example we will only
+          // show how to convert the output of the card to a usable format but won't actually load the key
+          Mnemonic mnemonic = new Mnemonic(cmdSet.generateMnemonic(WalletAppletCommandSet.GENERATE_MNEMONIC_12_WORDS).checkOK().getData());
+
+          // We need to set a wordlist if we plan using this object to derive the binary seed. If we just need the word
+          // indexes we can skip this step and call mnemonic.getIndexes() instead.
+          mnemonic.fetchBIP39EnglishWordlist();
+
+          Log.i(TAG, "Generated mnemonic phrase: " + mnemonic.toMnemonicPhrase());
+          Log.i(TAG, "Binary seed: " + Hex.toHexString(mnemonic.toBinarySeed()));
+
           // PIN authentication allows execution of privileged commands
           cmdSet.verifyPIN("000000").checkOK();
 
           Log.i(TAG, "Pin Verified.");
 
           // If the card has no keys, we generate a new set. Keys can also be loaded on the card starting from a binary
-          // seed generated from a mnemonic phrase. The card can also generate mnemonics.
+          // seed generated from a mnemonic phrase. In alternative, we could load the generated seed as shown in the
+          // commented line of code.
           if (!status.hasMasterKey()) {
             cmdSet.generateKey();
+            //cmdSet.loadKey(mnemonic.toBinarySeed(), WalletAppletCommandSet.LOAD_KEY_P1_SEED);
           }
 
           // Get the current key path using GET STATUS

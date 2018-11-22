@@ -3,6 +3,7 @@
           package="im.status.hardwallet_lite_android">
 
     <uses-permission android:name="android.permission.NFC" />
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-feature android:name="android.hardware.nfc.hce" android:required="true" />
 
 </manifest>
