@@ -37,7 +37,13 @@ public class APDUResponse {
         return this.sw == SW_OK;
     }
 
-    public APDUResponse checkOK() throws APDUException {
+    public APDUResponse checkOK(int... codes) throws APDUException {
+        for (int code : codes) {
+            if (this.sw == code) {
+                return this;
+            }
+        }
+
         if (!isOK()) {
             switch (this.sw) {
                 case SW_SECURITY_CONDITION_NOT_SATISFIED:
