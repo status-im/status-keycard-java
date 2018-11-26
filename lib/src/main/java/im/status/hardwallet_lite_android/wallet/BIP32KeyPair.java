@@ -8,6 +8,10 @@ import javax.crypto.spec.SecretKeySpec;
 import java.math.BigInteger;
 import java.util.Arrays;
 
+/**
+ * Represents a BIP32 keypair. This can be a master key or any other key in the path. Contains convenience method to
+ * read and write formats the the card understands.
+ */
 public class BIP32KeyPair {
   private byte[] privateKey;
   private byte[] chainCode;
@@ -27,9 +31,9 @@ public class BIP32KeyPair {
   public static BIP32KeyPair fromBinarySeed(byte[] binarySeed) {
     try {
       Mac hmacSHA512 = Mac.getInstance("HmacSHA512");
-      SecretKeySpec keySpec = new SecretKeySpec(binarySeed, "HmacSHA512");
+      SecretKeySpec keySpec = new SecretKeySpec("Bitcoin seed".getBytes(), "HmacSHA512");
       hmacSHA512.init(keySpec);
-      byte[] mac = hmacSHA512.doFinal("Bitcoin Seed".getBytes());
+      byte[] mac = hmacSHA512.doFinal(binarySeed);
       return new BIP32KeyPair(Arrays.copyOf(mac, 32), Arrays.copyOfRange(mac, 32, 64), null);
     } catch (Exception e) {
       throw new RuntimeException("Is BouncyCastle correctly installed? ", e);

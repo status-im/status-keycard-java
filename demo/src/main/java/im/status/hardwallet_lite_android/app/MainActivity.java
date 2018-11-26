@@ -94,11 +94,11 @@ public class MainActivity extends AppCompatActivity {
           Log.i(TAG, "Pin Verified.");
 
           // If the card has no keys, we generate a new set. Keys can also be loaded on the card starting from a binary
-          // seed generated from a mnemonic phrase. In alternative, we could load the generated seed as shown in the
+          // seed generated from a mnemonic phrase. In alternative, we could load the generated keypair as shown in the
           // commented line of code.
           if (!status.hasMasterKey()) {
             cmdSet.generateKey();
-            //cmdSet.loadKey(mnemonic.toBinarySeed());
+            //cmdSet.loadKey(mnemonic.toBIP32KeyPair());
           }
 
           // Get the current key path using GET STATUS
@@ -111,6 +111,12 @@ public class MainActivity extends AppCompatActivity {
             cmdSet.deriveKey("m/44'/0'/0'/0/0").checkOK();
             Log.i(TAG, "Derived m/44'/0'/0'/0/0");
           }
+
+          // We retrieve the wallet public key
+          BIP32KeyPair walletPublicKey = BIP32KeyPair.fromTLV(cmdSet.exportKey(WalletAppletCommandSet.EXPORT_KEY_P1_ANY, true).checkOK().getData());
+
+          Log.i(TAG, "Wallet public key: " + Hex.toHexString(walletPublicKey.getPublicKey()));
+          Log.i(TAG, "Wallet address: " + Hex.toHexString(walletPublicKey.toEthereumAddress()));
 
           byte[] hash = "thiscouldbeahashintheorysoitisok".getBytes();
 
