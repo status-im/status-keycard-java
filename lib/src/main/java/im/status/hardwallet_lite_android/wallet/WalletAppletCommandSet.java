@@ -494,6 +494,19 @@ public class WalletAppletCommandSet {
   }
 
   /**
+   * Sends a DUPLICATE KEY APDU. The P1 is set to 03. This imports an encrypted master key including chaining code. The
+   * response data contains the key UID of the imported key.
+   *
+   * @param key the key, exported from another card in the same duplication session.
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse duplicateKeyImport(byte[] key) throws IOException {
+    APDUCommand duplicateKeyImport = secureChannel.protectedCommand(0x80, INS_DUPLICATE_KEY, DUPLICATE_KEY_P1_IMPORT, 0, key);
+    return secureChannel.transmit(apduChannel, duplicateKeyImport);
+  }
+
+  /**
    * Sends a SIGN APDU. This signs a precomputed hash so the input must be exactly 32-bytes long.
    *
    * @param data the data to sign
