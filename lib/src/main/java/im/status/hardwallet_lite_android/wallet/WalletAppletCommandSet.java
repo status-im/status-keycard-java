@@ -66,9 +66,6 @@ public class WalletAppletCommandSet {
   static final byte EXPORT_KEY_P2_PRIVATE_AND_PUBLIC = 0x00;
   static final byte EXPORT_KEY_P2_PUBLIC_ONLY = 0x01;
 
-  static final byte TLV_PUB_KEY = (byte) 0x80;
-  static final byte TLV_PRIV_KEY = (byte) 0x81;
-  static final byte TLV_CHAIN_CODE = (byte) 0x82;
   static final byte TLV_APPLICATION_INFO_TEMPLATE = (byte) 0xA4;
 
 
@@ -335,10 +332,10 @@ public class WalletAppletCommandSet {
    * @throws IOException communication error
    */
   public APDUResponse loadKey(KeyPair keyPair, boolean omitPublicKey, byte[] chainCode) throws IOException {
-    byte[] publicKey = omitPublicKey ? null : ((ECPublicKey) keyPair.getPublic()).getQ().getEncoded(false);
+    byte[] publicKey = ((ECPublicKey) keyPair.getPublic()).getQ().getEncoded(false);
     byte[] privateKey = ((ECPrivateKey) keyPair.getPrivate()).getD().toByteArray();
 
-    return loadKey(publicKey, privateKey, chainCode);
+    return loadKey(new BIP32KeyPair(privateKey, chainCode, publicKey), omitPublicKey);
   }
 
   /**
@@ -353,59 +350,23 @@ public class WalletAppletCommandSet {
    * @throws IOException communication error
    */
   public APDUResponse loadKey(byte[] publicKey, byte[] privateKey, byte[] chainCode) throws IOException {
-    int privLen = privateKey.length;
-    int privOff = 0;
+    return loadKey(new BIP32KeyPair(privateKey, chainCode, publicKey), publicKey == null);
+  }
 
-    if(privateKey[0] == 0x00) {
-      privOff++;
-      privLen--;
-    }
+  public APDUResponse loadKey(BIP32KeyPair keyPair) throws IOException {
+    return loadKey(keyPair, false);
+  }
 
-    int off = 0;
-    int totalLength = publicKey == null ? 0 : (publicKey.length + 2);
-    totalLength += (privLen + 2);
-    totalLength += chainCode == null ? 0 : (chainCode.length + 2);
-
-    if (totalLength > 127) {
-      totalLength += 3;
-    } else {
-      totalLength += 2;
-    }
-
-    byte[] data = new byte[totalLength];
-    data[off++] = (byte) 0xA1;
-
-    if (totalLength > 127) {
-      data[off++] = (byte) 0x81;
-      data[off++] = (byte) (totalLength - 3);
-    } else {
-      data[off++] = (byte) (totalLength - 2);
-    }
-
-    if (publicKey != null) {
-      data[off++] = TLV_PUB_KEY;
-      data[off++] = (byte) publicKey.length;
-      System.arraycopy(publicKey, 0, data, off, publicKey.length);
-      off += publicKey.length;
-    }
-
-    data[off++] = TLV_PRIV_KEY;
-    data[off++] = (byte) privLen;
-    System.arraycopy(privateKey, privOff, data, off, privLen);
-    off += privLen;
-
+  public APDUResponse loadKey(BIP32KeyPair keyPair, boolean omitPublic)  throws IOException {
     byte p1;
 
-    if (chainCode != null) {
+    if (keyPair.isExtended()) {
       p1 = LOAD_KEY_P1_EXT_EC;
-      data[off++] = (byte) TLV_CHAIN_CODE;
-      data[off++] = (byte) chainCode.length;
-      System.arraycopy(chainCode, 0, data, off, chainCode.length);
     } else {
       p1 = LOAD_KEY_P1_EC;
     }
 
-    return loadKey(data, p1);
+    return loadKey(keyPair.toTLV(!omitPublic), p1);
   }
 
   /**

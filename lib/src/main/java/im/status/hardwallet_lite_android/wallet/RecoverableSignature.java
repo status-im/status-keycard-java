@@ -25,7 +25,7 @@ public class RecoverableSignature {
   public static final byte TLV_ECDSA_TEMPLATE = (byte) 0x30;
 
   private static final X9ECParameters CURVE_PARAMS = CustomNamedCurves.getByName("secp256k1");
-  private static final ECDomainParameters CURVE;
+  static final ECDomainParameters CURVE;
 
   static {
     FixedPointUtil.precompute(CURVE_PARAMS.getG(), 6);

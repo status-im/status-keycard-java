@@ -9,6 +9,8 @@ public class TinyBERTLV {
   public static final byte TLV_BOOL = (byte) 0x01;
   public static final byte TLV_INT = (byte) 0x02;
 
+  public static final int END_OF_TLV = (int) 0xffffffff;
+
   private byte[] buffer;
   private int pos;
 
@@ -78,10 +80,13 @@ public class TinyBERTLV {
   }
 
   /**
-   * Low-level method to unread the last read tag. Only valid if the previous call was readTag().
+   * Low-level method to unread the last read tag. Only valid if the previous call was readTag(). Does nothing if the
+   * end of the TLV has been reached.
    */
   public void unreadLastTag() {
-    pos--;
+    if (pos < buffer.length) {
+      pos--;
+    }
   }
 
   /**
@@ -90,7 +95,7 @@ public class TinyBERTLV {
    * @return the tag
    */
   public int readTag() {
-    return buffer[pos++];
+    return (pos < buffer.length) ? buffer[pos++] : END_OF_TLV;
   }
 
   /**

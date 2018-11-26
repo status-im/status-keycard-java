@@ -121,6 +121,24 @@ public class Mnemonic {
     return toBinarySeed(toMnemonicPhrase(), password);
   }
 
+  /**
+   * The full master key, generated from this mnemonic.
+   *
+   */
+  public BIP32KeyPair toBIP32KeyPair() {
+    return toBIP32KeyPair("");
+  }
+
+  /**
+   * The full master key, generated from this mnemonic with a password.
+   *
+   * @param password can be an empty string but not null
+   * @return the binary seed
+   */
+  public BIP32KeyPair toBIP32KeyPair(String password) {
+    return BIP32KeyPair.fromBinarySeed(toBinarySeed(password));
+  }
+
   public static byte[] toBinarySeed(String mnemonicPhrase, String password) {
     SecretKey key;
 
