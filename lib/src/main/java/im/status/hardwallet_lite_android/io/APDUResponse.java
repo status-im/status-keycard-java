@@ -38,19 +38,25 @@ public class APDUResponse {
     }
 
     public APDUResponse checkOK() throws APDUException {
-        if (!isOK()) {
-            switch (this.sw) {
-                case SW_SECURITY_CONDITION_NOT_SATISFIED:
-                    throw new APDUException(this.sw, "security condition not satisfied");
-                case SW_AUTHENTICATION_METHOD_BLOCKED:
-                    throw new APDUException(this.sw, "authentication method blocked");
-                default:
-                    throw new APDUException(this.sw,  "Unexpected error SW");
-            }
+        this.checkSW(SW_OK);
+        return this;
+    }
 
+    public APDUResponse checkSW(int... codes) throws APDUException {
+        for (int code : codes) {
+            if (this.sw == code) {
+                return this;
+            }
         }
 
-        return this;
+        switch (this.sw) {
+            case SW_SECURITY_CONDITION_NOT_SATISFIED:
+                throw new APDUException(this.sw, "security condition not satisfied");
+            case SW_AUTHENTICATION_METHOD_BLOCKED:
+                throw new APDUException(this.sw, "authentication method blocked");
+            default:
+                throw new APDUException(this.sw,  "Unexpected error SW");
+        }
     }
 
     public byte[] getData() {
