@@ -33,6 +33,10 @@ public class APDUResponse {
         System.arraycopy(this.apdu, 0, this.data, 0, length - 2);
     }
 
+    public boolean isOK() {
+        return this.sw == SW_OK;
+    }
+
     public APDUResponse checkOK() throws APDUException {
         this.checkSW(SW_OK);
         return this;

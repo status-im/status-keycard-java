@@ -15,6 +15,8 @@ public class Load {
     static final byte CLA = (byte) 0x80;
     static final byte INS = (byte) 0xE8;
 
+    static final int BLOCK_SIZE = 147; // 255 - 8 bytes for MAC
+
     private static String[] fileNames = {"Header", "Directory", "Import", "Applet",
             "Class", "Method", "StaticField", "Export", "ConstantPool", "RefLocation"};
 
@@ -57,14 +59,16 @@ public class Load {
         return parts[parts.length - 2];
     }
 
-    public byte[] nextDataBlock() {
+    public int blocksCount() {
+        return (int) Math.ceil(this.fullData.length / (float) BLOCK_SIZE);
+    }
 
-        int blockSize = 247; // 255 - 8 bytes for MAC
+    public byte[] nextDataBlock() {
         if (this.offset >= this.fullData.length) {
             return null;
         }
 
-        int rangeEnd = this.offset + blockSize;
+        int rangeEnd = this.offset + BLOCK_SIZE;
         if (rangeEnd >= this.fullData.length) {
             rangeEnd = this.fullData.length;
         }
