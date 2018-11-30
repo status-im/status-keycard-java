@@ -60,8 +60,9 @@ public class WalletAppletCommandSet {
   public static final int GENERATE_MNEMONIC_21_WORDS = 0x07;
   public static final int GENERATE_MNEMONIC_24_WORDS = 0x08;
 
-  public static final byte EXPORT_KEY_P1_ANY = 0x00;
-  public static final byte EXPORT_KEY_P1_HIGH = 0x01;
+  static final byte EXPORT_KEY_P1_CURRENT = 0x00;
+  static final byte EXPORT_KEY_P1_DERIVE = 0x01;
+  static final byte EXPORT_KEY_P1_DERIVE_AND_MAKE_CURRENT = 0x02;
 
   static final byte EXPORT_KEY_P2_PRIVATE_AND_PUBLIC = 0x00;
   static final byte EXPORT_KEY_P2_PUBLIC_ONLY = 0x01;
@@ -529,16 +530,42 @@ public class WalletAppletCommandSet {
   }
 
   /**
-   * Sends an EXPORT KEY APDU. The keyPathIndex is used as P1. Valid values are defined in the applet itself
+   * Sends an EXPORT KEY APDU to export the current key.
    *
-   * @param keyPathIndex the P1 parameter
+   * @param publicOnly exports only the public key
+   * @return the raw card reponse
+   * @throws IOException communication error
+   */
+  public APDUResponse exportCurrentKey(boolean publicOnly) throws IOException {
+    return exportKey(EXPORT_KEY_P1_CURRENT, publicOnly, new byte[0]);
+  }
+
+  /**
+   * Sends an EXPORT KEY APDU. Performs derivation of the given keypath and optionally makes it the current key.
+   *
+   * @param keyPath the keypath to export
+   * @param makeCurrent if the key should be made current or not
    * @param publicOnly the P2 parameter
    * @return the raw card response
    * @throws IOException communication error
    */
-  public APDUResponse exportKey(byte keyPathIndex, boolean publicOnly) throws IOException {
+  public APDUResponse exportKey(byte[] keyPath, boolean makeCurrent, boolean publicOnly) throws IOException {
+    byte p1 = makeCurrent ? EXPORT_KEY_P1_DERIVE_AND_MAKE_CURRENT : EXPORT_KEY_P1_DERIVE;
+    return exportKey(p1, publicOnly, keyPath);
+  }
+
+  /**
+   * Sends an EXPORT KEY APDU. The parameters are sent as-is.
+   *
+   * @param derivationOptions the P1 parameter
+   * @param publicOnly the P2 parameter
+   * @param keypath the data parameter
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse exportKey(int derivationOptions, boolean publicOnly, byte[] keypath) throws IOException {
     byte p2 = publicOnly ? EXPORT_KEY_P2_PUBLIC_ONLY : EXPORT_KEY_P2_PRIVATE_AND_PUBLIC;
-    APDUCommand exportKey = secureChannel.protectedCommand(0x80, INS_EXPORT_KEY, keyPathIndex, p2, new byte[0]);
+    APDUCommand exportKey = secureChannel.protectedCommand(0x80, INS_EXPORT_KEY, derivationOptions, p2, keypath);
     return secureChannel.transmit(apduChannel, exportKey);
   }
 

@@ -113,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
           }
 
           // We retrieve the wallet public key
-          BIP32KeyPair walletPublicKey = BIP32KeyPair.fromTLV(cmdSet.exportKey(WalletAppletCommandSet.EXPORT_KEY_P1_ANY, true).checkOK().getData());
+          BIP32KeyPair walletPublicKey = BIP32KeyPair.fromTLV(cmdSet.exportCurrentKey(true).checkOK().getData());
 
           Log.i(TAG, "Wallet public key: " + Hex.toHexString(walletPublicKey.getPublicKey()));
           Log.i(TAG, "Wallet address: " + Hex.toHexString(walletPublicKey.toEthereumAddress()));
