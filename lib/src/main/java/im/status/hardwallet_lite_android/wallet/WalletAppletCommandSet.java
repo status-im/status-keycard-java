@@ -549,8 +549,22 @@ public class WalletAppletCommandSet {
    * @return the raw card response
    * @throws IOException communication error
    */
-  public APDUResponse exportKey(byte[] keyPath, boolean makeCurrent, boolean publicOnly) throws IOException {
-    byte p1 = makeCurrent ? EXPORT_KEY_P1_DERIVE_AND_MAKE_CURRENT : EXPORT_KEY_P1_DERIVE;
+  public APDUResponse exportKey(String keyPath, boolean makeCurrent, boolean publicOnly) throws IOException {
+    KeyPath path = new KeyPath(keyPath);
+    return exportKey(path.getData(), path.getSource(), makeCurrent, publicOnly);
+  }
+
+  /**
+   * Sends an EXPORT KEY APDU. Performs derivation of the given keypath and optionally makes it the current key.
+   *
+   * @param keyPath the keypath to export
+   * @param makeCurrent if the key should be made current or not
+   * @param publicOnly the P2 parameter
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse exportKey(byte[] keyPath, int source, boolean makeCurrent, boolean publicOnly) throws IOException {
+    int p1 = source | (makeCurrent ? EXPORT_KEY_P1_DERIVE_AND_MAKE_CURRENT : EXPORT_KEY_P1_DERIVE);
     return exportKey(p1, publicOnly, keyPath);
   }
 
