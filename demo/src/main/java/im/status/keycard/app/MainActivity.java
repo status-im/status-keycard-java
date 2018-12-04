@@ -8,7 +8,7 @@ import im.status.keycard.demo.R;
 import im.status.keycard.io.CardChannel;
 import im.status.keycard.io.CardListener;
 import im.status.keycard.io.CardManager;
-import im.status.keycard.keycard.*;
+import im.status.keycard.applet.*;
 import org.spongycastle.util.encoders.Hex;
 
 public class MainActivity extends AppCompatActivity {

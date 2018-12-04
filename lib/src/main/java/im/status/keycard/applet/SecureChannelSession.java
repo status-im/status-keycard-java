@@ -1,4 +1,4 @@
-package im.status.keycard.keycard;
+package im.status.keycard.applet;
 
 import im.status.keycard.io.APDUCommand;
 import im.status.keycard.io.APDUException;
