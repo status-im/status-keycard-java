@@ -1,6 +1,6 @@
 package im.status.keycard.globalplatform;
 
-import im.status.keycard.wallet.TinyBERTLV;
+import im.status.keycard.keycard.TinyBERTLV;
 
 public class ApplicationID {
     public static final byte TLV_FILE_CONTROL_INFORMATION_TEMPLATE = (byte) 0x6F;

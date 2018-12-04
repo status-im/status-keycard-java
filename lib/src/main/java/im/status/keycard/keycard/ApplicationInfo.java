@@ -1,4 +1,4 @@
-package im.status.keycard.wallet;
+package im.status.keycard.keycard;
 
 /**
  * Parses the response from a SELECT command. If the card has not yet received the INIT command the isInitializedCard

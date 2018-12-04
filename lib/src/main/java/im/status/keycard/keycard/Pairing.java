@@ -1,4 +1,4 @@
-package im.status.keycard.wallet;
+package im.status.keycard.keycard;
 
 import org.spongycastle.util.encoders.Base64;
 

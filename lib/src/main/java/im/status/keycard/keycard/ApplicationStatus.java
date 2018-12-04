@@ -1,4 +1,4 @@
-package im.status.keycard.wallet;
+package im.status.keycard.keycard;
 
 /**
  * Parses the result of a GET STATUS command retrieving application status.

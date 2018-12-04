@@ -1,4 +1,4 @@
-package im.status.keycard.wallet;
+package im.status.keycard.keycard;
 
 import org.spongycastle.asn1.x9.X9ECParameters;
 import org.spongycastle.asn1.x9.X9IntegerConverter;
