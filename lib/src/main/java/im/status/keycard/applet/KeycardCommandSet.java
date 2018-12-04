@@ -150,7 +150,7 @@ public class KeycardCommandSet {
 
     try {
       SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-      PBEKeySpec spec = new PBEKeySpec(pairingPassword.toCharArray(), "Status Hardware Wallet Lite".getBytes(), 50000, 32 * 8);
+      PBEKeySpec spec = new PBEKeySpec(pairingPassword.toCharArray(), "Keycard Pairing Password Salt".getBytes(), 50000, 32 * 8);
       key = skf.generateSecret(spec);
     } catch (Exception e) {
       throw new RuntimeException("Is Bouncycastle correctly initialized?");

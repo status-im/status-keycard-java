@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
           // can be either generated or chosen by the user. Using fixed values is highly discouraged.
           if (!info.isInitializedCard()) {
             Log.i(TAG, "Initializing card with test secrets");
-            cmdSet.init("000000", "123456789012", "WalletAppletTest").checkOK();
+            cmdSet.init("000000", "123456789012", "KeycardTest").checkOK();
             info = new ApplicationInfo(cmdSet.select().checkOK().getData());
           }
 
@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
           }
 
           // In real projects, the pairing key should be saved and used for all new sessions.
-          cmdSet.autoPair("WalletAppletTest");
+          cmdSet.autoPair("KeycardTest");
           Pairing pairing = cmdSet.getPairing();
 
           // Never log the pairing key in a real application!
