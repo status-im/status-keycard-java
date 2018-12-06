@@ -68,10 +68,6 @@ public class KeycardCommandSet {
 
   static final byte TLV_APPLICATION_INFO_TEMPLATE = (byte) 0xA4;
 
-
-  public static final String APPLET_AID = "53746174757357616C6C6574417070";
-  static final byte[] APPLET_AID_BYTES = Hex.decode(APPLET_AID);
-
   private final CardChannel apduChannel;
   private SecureChannelSession secureChannel;
 
@@ -107,7 +103,7 @@ public class KeycardCommandSet {
    * @throws IOException communication error
    */
   public APDUResponse select() throws IOException {
-    APDUCommand selectApplet = new APDUCommand(0x00, 0xA4, 4, 0, APPLET_AID_BYTES);
+    APDUCommand selectApplet = new APDUCommand(0x00, 0xA4, 4, 0, Identifiers.getKeycardInstanceAID());
     APDUResponse resp =  apduChannel.send(selectApplet);
 
     if (resp.getSw() == 0x9000) {

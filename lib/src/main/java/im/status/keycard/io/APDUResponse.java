@@ -38,8 +38,7 @@ public class APDUResponse {
     }
 
     public APDUResponse checkOK() throws APDUException {
-        this.checkSW(SW_OK);
-        return this;
+        return this.checkSW(SW_OK);
     }
 
     public APDUResponse checkSW(int... codes) throws APDUException {

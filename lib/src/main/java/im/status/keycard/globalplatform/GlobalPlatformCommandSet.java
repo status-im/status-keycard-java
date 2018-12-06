@@ -1,9 +1,12 @@
 package im.status.keycard.globalplatform;
 
+import im.status.keycard.applet.Identifiers;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.security.SecureRandom;
 
 import im.status.keycard.io.APDUCommand;
 import im.status.keycard.io.APDUException;
@@ -66,6 +69,32 @@ public class GlobalPlatformCommandSet {
         return this.secureChannel.send(cmd);
     }
 
+    public void openSecureChannel() throws APDUException, IOException {
+        SecureRandom random = new SecureRandom();
+        byte[] hostChallenge = new byte[8];
+        random.nextBytes(hostChallenge);
+        initializeUpdate(hostChallenge).checkOK();
+        externalAuthenticate(hostChallenge).checkOK();
+    }
+
+    public APDUResponse deleteKeycardInstance() throws IOException {
+        return delete(Identifiers.getKeycardInstanceAID());
+    }
+
+    public APDUResponse deleteNDEFInstance() throws IOException {
+        return delete(Identifiers.NDEF_INSTANCE_AID);
+    }
+
+    public APDUResponse deleteKeycardPackage() throws IOException {
+        return delete(Identifiers.PACKAGE_AID);
+    }
+
+    public void deleteKeycardInstancesAndPackage() throws IOException, APDUException {
+        deleteNDEFInstance().checkSW(APDUResponse.SW_OK, APDUResponse.SW_REFERENCED_DATA_NOT_FOUND);
+        deleteKeycardInstance().checkSW(APDUResponse.SW_OK, APDUResponse.SW_REFERENCED_DATA_NOT_FOUND);
+        deleteKeycardPackage().checkSW(APDUResponse.SW_OK, APDUResponse.SW_REFERENCED_DATA_NOT_FOUND);
+    }
+
     public APDUResponse delete(byte[] aid) throws IOException {
         byte[] data = new byte[aid.length + 2];
         data[0] = 0x4F;
@@ -75,6 +104,24 @@ public class GlobalPlatformCommandSet {
         APDUCommand cmd = new APDUCommand(0x80, INS_DELETE, 0, 0, data);
 
         return this.secureChannel.send(cmd);
+    }
+
+    public void loadKeycardPackage(InputStream in, LoadCallback cb) throws IOException, APDUException {
+        installForLoad(Identifiers.PACKAGE_AID).checkOK();
+
+        Load load = new Load(in);
+
+        byte[] block;
+        int steps = load.blocksCount();
+
+        while((block = load.nextDataBlock()) != null) {
+            load(block, (load.getCount() - 1), load.hasMore()).checkOK();
+            cb.blockLoaded(load.getCount(), steps);
+        }
+    }
+
+    public APDUResponse installForLoad(byte[] aid) throws IOException {
+        return installForLoad(aid, new byte[0]);
     }
 
     public APDUResponse installForLoad(byte[] aid, byte[] sdaid) throws IOException {
@@ -126,5 +173,13 @@ public class GlobalPlatformCommandSet {
         APDUCommand cmd = new APDUCommand(0x80, INS_INSTALL, INSTALL_FOR_INSTALL_P1, 0, data.toByteArray());
 
         return this.secureChannel.send(cmd);
+    }
+
+    public APDUResponse installNDEFApplet(byte[] ndefRecord) throws IOException {
+        return installForInstall(Identifiers.PACKAGE_AID, Identifiers.NDEF_AID, Identifiers.NDEF_INSTANCE_AID, ndefRecord);
+    }
+
+    public APDUResponse installKeycardApplet() throws IOException {
+        return installForInstall(Identifiers.PACKAGE_AID, Identifiers.KEYCARD_AID, Identifiers.getKeycardInstanceAID(), new byte[0]);
     }
 }
