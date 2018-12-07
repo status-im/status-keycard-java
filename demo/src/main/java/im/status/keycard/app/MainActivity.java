@@ -7,7 +7,7 @@ import android.util.Log;
 import im.status.keycard.demo.R;
 import im.status.keycard.io.CardChannel;
 import im.status.keycard.io.CardListener;
-import im.status.keycard.io.CardManager;
+import im.status.keycard.io.NFCCardManager;
 import im.status.keycard.applet.*;
 import org.spongycastle.util.encoders.Hex;
 
@@ -16,14 +16,14 @@ public class MainActivity extends AppCompatActivity {
   private static final String TAG = "MainActivity";
 
   private NfcAdapter nfcAdapter;
-  private CardManager cardManager;
+  private NFCCardManager cardManager;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
     nfcAdapter = NfcAdapter.getDefaultAdapter(this);
-    cardManager = new CardManager();
+    cardManager = new NFCCardManager();
 
     cardManager.setCardListener(new CardListener() {
       @Override

@@ -1,7 +1,5 @@
 package im.status.keycard.applet;
 
-import android.text.TextUtils;
-
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -99,7 +97,7 @@ public class Mnemonic {
    * @return the mnemonic phrase
    */
   public String toMnemonicPhrase() {
-    return TextUtils.join(" ", getWords());
+    return join(" ", getWords());
   }
 
   /**
@@ -151,5 +149,29 @@ public class Mnemonic {
     }
 
     return key.getEncoded();
+  }
+
+  /**
+   * String join. Used instead of Android TextUtils.join or Java 8 String.join method for compatibility reasons.
+   *
+   * @param list the list of words
+   * @param conjunction the conjunction
+   *
+   * @return the joined string
+   */
+  private String join(String conjunction, String[] list) {
+    StringBuilder sb = new StringBuilder();
+    boolean first = true;
+    for (String item : list) {
+      if (first) {
+        first = false;
+      } else {
+        sb.append(conjunction);
+      }
+
+      sb.append(item);
+    }
+
+    return sb.toString();
   }
 }

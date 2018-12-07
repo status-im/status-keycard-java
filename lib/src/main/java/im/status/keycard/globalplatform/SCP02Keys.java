@@ -1,19 +1,37 @@
 package im.status.keycard.globalplatform;
 
+/**
+ * Keeps keys for SCP02.
+ */
 public class SCP02Keys {
-    public byte[] encKeyData;
-    public byte[] macKeyData;
+  public byte[] encKeyData;
+  public byte[] macKeyData;
 
-    public SCP02Keys(byte[] encKeyData, byte[] macKeyData) {
-        this.encKeyData = encKeyData;
-        this.macKeyData = macKeyData;
-    }
+  /**
+   * Constructor. Takes the ENC and MAC keys.
+   *
+   * @param encKeyData encryption key
+   * @param macKeyData mac key
+   */
+  public SCP02Keys(byte[] encKeyData, byte[] macKeyData) {
+    this.encKeyData = encKeyData;
+    this.macKeyData = macKeyData;
+  }
 
-    public byte[] getEncKeyData() {
-        return encKeyData;
-    }
+  /**
+   * The encryption key
+   * @return the encryption key
+   */
+  public byte[] getEncKeyData() {
+    return encKeyData;
+  }
 
-    public byte[] getMacKeyData() {
-        return macKeyData;
-    }
+  /**
+   * The MAC key
+   *
+   * @return the MAC key
+   */
+  public byte[] getMacKeyData() {
+    return macKeyData;
+  }
 }

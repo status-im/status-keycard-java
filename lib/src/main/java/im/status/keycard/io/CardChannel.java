@@ -1,29 +1,23 @@
 package im.status.keycard.io;
 
-import android.nfc.tech.IsoDep;
-import android.util.Log;
-
 import java.io.IOException;
 
-public class CardChannel {
-    private static final String TAG = "CardChannel";
+/**
+ * A channel to transcieve ISO7816-4 APDUs.
+ */
+public interface CardChannel {
+  /**
+   * Sends the given C-APDU and returns an R-APDU.
+   *
+   * @param cmd the command to send
+   * @return the card response
+   * @throws IOException communication error
+   */
+  APDUResponse send(APDUCommand cmd) throws IOException;
 
-    private IsoDep isoDep;
-
-    public CardChannel(IsoDep isoDep) {
-        this.isoDep = isoDep;
-    }
-
-    public APDUResponse send(APDUCommand cmd) throws IOException {
-        byte[] apdu = cmd.serialize();
-        Log.d(TAG, String.format("COMMAND CLA: %02X INS: %02X P1: %02X P2: %02X LC: %02X", cmd.getCla(), cmd.getIns(), cmd.getP1(), cmd.getP2(), cmd.getData().length));
-        byte[] resp = this.isoDep.transceive(apdu);
-        APDUResponse response = new APDUResponse(resp);
-        Log.d(TAG, String.format("RESPONSE LEN: %02X, SW: %04X %n-----------------------", response.getData().length, response.getSw()));
-        return response;
-    }
-
-    public boolean isConnected() {
-        return this.isoDep.isConnected();
-    }
+  /**
+   * True if connected, false otherwise
+   * @return true if connected, false otherwise
+   */
+  boolean isConnected();
 }
