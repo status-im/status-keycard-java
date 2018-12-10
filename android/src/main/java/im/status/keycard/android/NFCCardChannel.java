@@ -1,7 +1,10 @@
-package im.status.keycard.io;
+package im.status.keycard.android;
 
 import android.nfc.tech.IsoDep;
 import android.util.Log;
+import im.status.keycard.io.APDUCommand;
+import im.status.keycard.io.APDUResponse;
+import im.status.keycard.io.CardChannel;
 
 import java.io.IOException;
 

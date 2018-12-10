@@ -1,24 +1,7 @@
-apply plugin: 'com.android.library'
+apply plugin: 'java'
 
-android {
-    compileSdkVersion 28
-    defaultConfig {
-        minSdkVersion 19
-        targetSdkVersion 28
-        versionCode 2
-        versionName "2.0"
-    }
-
-    task androidSourcesJar(type: Jar) {
-        from android.sourceSets.main.java.source
-        classifier = 'sources'
-    }
-
-    artifacts {
-        archives androidSourcesJar
-    }
-
-}
+group 'im.status.keycard'
+version '2.0'
 
 dependencies {
     implementation 'com.madgag.spongycastle:core:1.58.0.0'

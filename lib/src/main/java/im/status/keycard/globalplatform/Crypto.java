@@ -1,10 +1,6 @@
 package im.status.keycard.globalplatform;
 
-import java.security.GeneralSecurityException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import java.security.*;
 import java.util.Arrays;
 
 import javax.crypto.BadPaddingException;
@@ -22,6 +18,15 @@ public class Crypto {
 
   public static long PIN_BOUND = 999999L;
   public static long PUK_BOUND = 999999999999L;
+
+  private static boolean spongyCastleLoaded = false;
+
+  public static void addSpongyCastleProvider() {
+    if (!spongyCastleLoaded) {
+      Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
+      spongyCastleLoaded = true;
+    }
+  }
 
   /**
    * Derives a session key for SCP02.
