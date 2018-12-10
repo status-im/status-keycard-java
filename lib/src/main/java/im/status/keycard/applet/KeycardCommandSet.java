@@ -117,7 +117,6 @@ public class KeycardCommandSet {
   /**
    * Opens the secure channel. Calls the corresponding method of the SecureChannel class.
    *
-   * @return the raw card response
    * @throws IOException communication error
    */
   public void autoOpenSecureChannel() throws IOException {

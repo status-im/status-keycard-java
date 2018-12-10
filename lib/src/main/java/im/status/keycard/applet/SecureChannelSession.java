@@ -116,7 +116,6 @@ public class SecureChannelSession {
    * Follows the specifications from the SECURE_CHANNEL.md document.
    *
    * @param apduChannel the apdu channel
-   * @return the card response
    * @throws IOException communication error
    */
   public void autoOpenSecureChannel(CardChannel apduChannel) throws IOException {
@@ -309,7 +308,6 @@ public class SecureChannelSession {
    * Unpair all other clients
    *
    * @param apduChannel the apdu channel
-   * @return the raw card response
    * @throws IOException communication error
    */
   public void unpairOthers(CardChannel apduChannel) throws IOException, APDUException {
