@@ -1,8 +1,5 @@
 apply plugin: 'java'
 
-group 'im.status.keycard'
-version '2.0'
-
 dependencies {
     implementation 'com.madgag.spongycastle:core:1.58.0.0'
     implementation 'com.madgag.spongycastle:prov:1.58.0.0'
