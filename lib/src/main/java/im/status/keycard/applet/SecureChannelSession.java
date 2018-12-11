@@ -68,17 +68,17 @@ public class SecureChannelSession {
   public void generateSecret(byte[] keyData) {
     try {
       ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec("secp256k1");
-      KeyPairGenerator g = KeyPairGenerator.getInstance("ECDH");
+      KeyPairGenerator g = KeyPairGenerator.getInstance("ECDH", "SC");
       g.initialize(ecSpec, random);
 
       KeyPair keyPair = g.generateKeyPair();
 
       publicKey = ((ECPublicKey) keyPair.getPublic()).getQ().getEncoded(false);
-      KeyAgreement keyAgreement = KeyAgreement.getInstance("ECDH");
+      KeyAgreement keyAgreement = KeyAgreement.getInstance("ECDH", "SC");
       keyAgreement.init(keyPair.getPrivate());
 
       ECPublicKeySpec cardKeySpec = new ECPublicKeySpec(ecSpec.getCurve().decodePoint(keyData), ecSpec);
-      ECPublicKey cardKey = (ECPublicKey) KeyFactory.getInstance("ECDSA").generatePublic(cardKeySpec);
+      ECPublicKey cardKey = (ECPublicKey) KeyFactory.getInstance("ECDSA", "SC").generatePublic(cardKeySpec);
 
       keyAgreement.doPhase(cardKey, true);
       secret = keyAgreement.generateSecret();
@@ -154,7 +154,7 @@ public class SecureChannelSession {
 
       sessionEncKey = new SecretKeySpec(Arrays.copyOf(keyData, SC_SECRET_LENGTH), "AES");
       sessionMacKey = new KeyParameter(keyData, SC_SECRET_LENGTH, SC_SECRET_LENGTH);
-      sessionCipher = Cipher.getInstance("AES/CBC/ISO7816-4Padding");
+      sessionCipher = Cipher.getInstance("AES/CBC/ISO7816-4Padding", "SC");
       sessionMac = new CBCBlockCipherMac(new AESEngine(), 128, null);
       open = true;
     } catch(Exception e) {
@@ -195,7 +195,7 @@ public class SecureChannelSession {
     MessageDigest md;
 
     try {
-      md = MessageDigest.getInstance("SHA256");
+      md = MessageDigest.getInstance("SHA256", "SC");
     } catch(Exception e) {
       throw new RuntimeException("Is BouncyCastle in the classpath?", e);
     }
@@ -439,7 +439,7 @@ public class SecureChannelSession {
       random.nextBytes(iv);
       IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
       sessionEncKey = new SecretKeySpec(secret, "AES");
-      sessionCipher = Cipher.getInstance("AES/CBC/ISO7816-4Padding");
+      sessionCipher = Cipher.getInstance("AES/CBC/ISO7816-4Padding", "SC");
       sessionCipher.init(Cipher.ENCRYPT_MODE, sessionEncKey, ivParameterSpec);
       initData = sessionCipher.doFinal(initData);
       byte[] encrypted = new byte[1 + publicKey.length + iv.length + initData.length];

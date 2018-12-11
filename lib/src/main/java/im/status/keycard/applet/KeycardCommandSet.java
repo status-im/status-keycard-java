@@ -144,7 +144,7 @@ public class KeycardCommandSet {
     SecretKey key;
 
     try {
-      SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+      SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256", "SC");
       PBEKeySpec spec = new PBEKeySpec(pairingPassword.toCharArray(), "Keycard Pairing Password Salt".getBytes(), 50000, 32 * 8);
       key = skf.generateSecret(spec);
     } catch (Exception e) {
