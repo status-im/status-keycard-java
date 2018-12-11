@@ -7,7 +7,7 @@ import android.util.Log;
 import im.status.keycard.demo.R;
 import im.status.keycard.io.CardChannel;
 import im.status.keycard.io.CardListener;
-import im.status.keycard.io.NFCCardManager;
+import im.status.keycard.android.NFCCardManager;
 import im.status.keycard.applet.*;
 import org.spongycastle.util.encoders.Hex;
 

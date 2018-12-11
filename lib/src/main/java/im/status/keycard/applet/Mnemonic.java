@@ -141,7 +141,7 @@ public class Mnemonic {
     SecretKey key;
 
     try {
-      SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512");
+      SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512", "BC");
       PBEKeySpec spec = new PBEKeySpec(mnemonicPhrase.toCharArray(), ("mnemonic" + password).getBytes(), 2048, 512);
       key = skf.generateSecret(spec);
     } catch (Exception e) {

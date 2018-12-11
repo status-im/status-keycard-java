@@ -100,7 +100,7 @@ public class ApplicationInfo {
 
   /**
    * The number of remaining pairing slots. If zero is returned, no further pairing is possible.
-   * @return
+   * @return the number of remaining pairing slots
    */
   public byte getFreePairingSlots() {
     return freePairingSlots;

@@ -1,6 +1,6 @@
 package im.status.keycard.applet;
 
-import org.spongycastle.util.encoders.Hex;
+import org.bouncycastle.util.encoders.Hex;
 
 public class Identifiers {
   public static final byte[] PACKAGE_AID = Hex.decode("53746174757357616C6C6574");

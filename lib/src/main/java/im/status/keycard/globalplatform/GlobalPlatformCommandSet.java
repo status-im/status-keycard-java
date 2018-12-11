@@ -1,7 +1,7 @@
 package im.status.keycard.globalplatform;
 
 import im.status.keycard.applet.Identifiers;
-import org.spongycastle.util.encoders.Hex;
+import org.bouncycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

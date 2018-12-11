@@ -4,9 +4,8 @@ import im.status.keycard.io.APDUCommand;
 import im.status.keycard.io.APDUException;
 import im.status.keycard.io.APDUResponse;
 import im.status.keycard.io.CardChannel;
-import org.spongycastle.jce.interfaces.ECPrivateKey;
-import org.spongycastle.jce.interfaces.ECPublicKey;
-import org.spongycastle.util.encoders.Hex;
+import org.bouncycastle.jce.interfaces.ECPrivateKey;
+import org.bouncycastle.jce.interfaces.ECPublicKey;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -117,7 +116,6 @@ public class KeycardCommandSet {
   /**
    * Opens the secure channel. Calls the corresponding method of the SecureChannel class.
    *
-   * @return the raw card response
    * @throws IOException communication error
    */
   public void autoOpenSecureChannel() throws IOException {
@@ -145,7 +143,7 @@ public class KeycardCommandSet {
     SecretKey key;
 
     try {
-      SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+      SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256", "BC");
       PBEKeySpec spec = new PBEKeySpec(pairingPassword.toCharArray(), "Keycard Pairing Password Salt".getBytes(), 50000, 32 * 8);
       key = skf.generateSecret(spec);
     } catch (Exception e) {

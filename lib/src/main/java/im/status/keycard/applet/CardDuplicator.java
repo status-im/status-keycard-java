@@ -41,8 +41,8 @@ public class CardDuplicator {
    * @param pin the card PIN
    * @param deviceCount the number of devices which will be adding entropy for the key, including this one
    *
-   * @throws IOException
-   * @throws APDUException
+   * @throws IOException communication error
+   * @throws APDUException unexpected card response
    */
   public void startDuplication(CardChannel channel, Pairing pairing, String pin, int deviceCount) throws IOException, APDUException {
     KeycardCommandSet cmdSet = preamble(channel, pairing, pin);
@@ -56,8 +56,8 @@ public class CardDuplicator {
    * @param pairing the pairing info
    * @param pin the card PIN
    *
-   * @throws IOException
-   * @throws APDUException
+   * @throws IOException communication error
+   * @throws APDUException unexpected card response
    */
   public byte[] exportKey(CardChannel channel, Pairing pairing, String pin) throws IOException, APDUException {
     KeycardCommandSet cmdSet = preamble(channel, pairing, pin);
@@ -66,13 +66,13 @@ public class CardDuplicator {
 
   /**
    * Imports key. Must be used on all cards designated as the target for the duplication.
-   * @param channel
-   * @param pairing
-   * @param pin
-   * @param key
-   * @return
-   * @throws IOException
-   * @throws APDUException
+   * @param channel the card channel
+   * @param pairing the pairing info
+   * @param pin the user PIN
+   * @param key the key to import
+   * @return the key UID
+   * @throws IOException communication error
+   * @throws APDUException unexpected card response
    */
   public byte[] importKey(CardChannel channel, Pairing pairing, String pin, byte[] key) throws IOException, APDUException {
     KeycardCommandSet cmdSet = preamble(channel, pairing, pin);
@@ -84,8 +84,8 @@ public class CardDuplicator {
    * exactly once, except for the device which started the backup.
    *
    * @param channel
-   * @throws IOException
-   * @throws APDUException
+   * @throws IOException communication error
+   * @throws APDUException unexpected card response
    */
   public void addEntropy(CardChannel channel) throws IOException, APDUException {
     KeycardCommandSet cmdSet = new KeycardCommandSet(channel);

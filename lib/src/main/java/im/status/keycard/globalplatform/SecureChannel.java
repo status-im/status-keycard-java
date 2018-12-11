@@ -48,8 +48,8 @@ public class SecureChannel {
    * @param hostChallenge the host challenge
    * @param cardKeys the SCP02 keys
    * @param resp the response from the card to the INITIALIZE UPDATE oommand
-   * @return
-   * @throws APDUException
+   * @return the Session object built on succesful verification
+   * @throws APDUException communication error
    */
   public static Session verifyChallenge(byte[] hostChallenge, SCP02Keys cardKeys, APDUResponse resp) throws APDUException {
     if (resp.getSw() == APDUResponse.SW_SECURITY_CONDITION_NOT_SATISFIED) {

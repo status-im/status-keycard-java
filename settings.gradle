@@ -1,2 +1,4 @@
-include ':lib'
-include ':demo'
+include 'lib'
+include 'android'
+include 'desktop'
+include 'demo-android'

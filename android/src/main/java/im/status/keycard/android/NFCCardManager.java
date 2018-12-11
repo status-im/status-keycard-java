@@ -1,12 +1,14 @@
-package im.status.keycard.io;
+package im.status.keycard.android;
 
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.tech.IsoDep;
 import android.os.SystemClock;
 import android.util.Log;
+import im.status.keycard.globalplatform.Crypto;
+import im.status.keycard.io.CardListener;
+
 import java.io.IOException;
-import java.security.Security;
 
 /**
  * Manages connection of NFC-based cards. Extends Thread and must be started using the start() method. The thread has
@@ -20,6 +22,10 @@ public class NFCCardManager extends Thread implements NfcAdapter.ReaderCallback 
   private boolean isRunning;
   private CardListener cardListener;
   private int loopSleepMS;
+
+  static {
+    Crypto.addSpongyCastleProvider();
+  }
 
   /**
    * Constructs an NFC Card Manager with default delay between loop iterations.
@@ -35,7 +41,6 @@ public class NFCCardManager extends Thread implements NfcAdapter.ReaderCallback 
    */
   public NFCCardManager(int loopSleepMS) {
     this.loopSleepMS = loopSleepMS;
-    Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
   }
 
   /**
