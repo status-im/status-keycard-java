@@ -1,6 +1,6 @@
 package im.status.keycard.applet;
 
-import org.spongycastle.util.encoders.Base64;
+import org.bouncycastle.util.encoders.Base64;
 
 import java.util.Arrays;
 

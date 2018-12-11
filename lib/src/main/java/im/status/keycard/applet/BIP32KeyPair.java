@@ -1,7 +1,7 @@
 package im.status.keycard.applet;
 
-import org.spongycastle.crypto.digests.KeccakDigest;
-import org.spongycastle.math.ec.ECPoint;
+import org.bouncycastle.crypto.digests.KeccakDigest;
+import org.bouncycastle.math.ec.ECPoint;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
