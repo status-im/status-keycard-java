@@ -2,21 +2,39 @@ package im.status.keycard.applet;
 
 import org.bouncycastle.util.encoders.Hex;
 
+import java.util.Arrays;
+
 public class Identifiers {
-  public static final byte[] PACKAGE_AID = Hex.decode("53746174757357616C6C6574");
+  public static final byte[] PACKAGE_AID = Hex.decode("A0000008040001");
 
-  public static final byte[] KEYCARD_AID = Hex.decode("53746174757357616C6C6574417070");
+  public static final byte[] KEYCARD_AID = Hex.decode("A000000804000101");
+  public static final int KEYCARD_DEFAULT_INSTANCE_IDX = 1;
 
-  public static final byte[] NDEF_AID = Hex.decode("53746174757357616C6C65744E4643");
+  public static final byte[] NDEF_AID = Hex.decode("A000000804000102");
   public static final byte[] NDEF_INSTANCE_AID = Hex.decode("D2760000850101");
 
   /**
-   * Gets the instance AID of the Keycard applet. Since multiple instances this is a method instead of a constant.
-   * Soon a method taking an additional instance index will be added.
+   * Gets the instance AID of the default instance of the Keycard applet.
    *
    * @return the instance AID of the Keycard applet
    */
   public static byte[] getKeycardInstanceAID() {
-    return KEYCARD_AID;
+    return getKeycardInstanceAID(KEYCARD_DEFAULT_INSTANCE_IDX);
+  }
+
+  /**
+   * Gets the instance AID of the Keycard applet with the given index. Since multiple instances of the Keycard applet
+   * could be installed in parallel, this method allows selecting a specific instance. The index is between 01 and ff
+   *
+   * @return the instance AID of the Keycard applet
+   */
+  public static byte[] getKeycardInstanceAID(int instanceIdx) {
+    if (instanceIdx < 0x01 || instanceIdx > 0xff) {
+      throw new IllegalArgumentException("The instance index must be between 1 and 255");
+    }
+
+    byte[] instanceAID = Arrays.copyOf(KEYCARD_AID, KEYCARD_AID.length + 1);
+    instanceAID[KEYCARD_AID.length] = (byte) instanceIdx;
+    return instanceAID;
   }
 }

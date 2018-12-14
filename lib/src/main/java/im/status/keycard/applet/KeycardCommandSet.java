@@ -95,14 +95,26 @@ public class KeycardCommandSet {
   }
 
   /**
-   * Selects the applet. The applet is assumed to have been installed with its default AID. The returned data is a
-   * public key which must be used to initialize the secure channel.
+   * Selects the default instance of the Keycard applet. The applet is assumed to have been installed with its default
+   * AID. The returned data is a public key which must be used to initialize the secure channel.
    *
    * @return the raw card response
    * @throws IOException communication error
    */
   public APDUResponse select() throws IOException {
-    APDUCommand selectApplet = new APDUCommand(0x00, 0xA4, 4, 0, Identifiers.getKeycardInstanceAID());
+    return select(Identifiers.KEYCARD_DEFAULT_INSTANCE_IDX);
+  }
+
+  /**
+   * Selects a Keycard instance. The applet is assumed to have been installed with its default AID. The returned data is
+   * a public key which must be used to initialize the secure channel.
+   *
+   * @param instanceIdx the instance index
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse select(int instanceIdx) throws IOException {
+    APDUCommand selectApplet = new APDUCommand(0x00, 0xA4, 4, 0, Identifiers.getKeycardInstanceAID(instanceIdx));
     APDUResponse resp =  apduChannel.send(selectApplet);
 
     if (resp.getSw() == 0x9000) {
