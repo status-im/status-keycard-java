@@ -9,7 +9,7 @@ import im.status.keycard.io.CardChannel;
 import im.status.keycard.io.CardListener;
 import im.status.keycard.android.NFCCardManager;
 import im.status.keycard.applet.*;
-import org.spongycastle.util.encoders.Hex;
+import org.bouncycastle.util.encoders.Hex;
 
 public class MainActivity extends AppCompatActivity {
 
