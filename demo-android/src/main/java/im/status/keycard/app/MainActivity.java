@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
           Log.i(TAG, "Binary seed: " + Hex.toHexString(mnemonic.toBinarySeed()));
 
           // PIN authentication allows execution of privileged commands
-          cmdSet.verifyPIN("000000").checkOK();
+          cmdSet.verifyPIN("000000").checkAuthOK();
 
           Log.i(TAG, "Pin Verified.");
 

@@ -10,6 +10,7 @@ public class APDUResponse {
   public static final int SW_CARD_LOCKED = 0x6283;
   public static final int SW_REFERENCED_DATA_NOT_FOUND = 0x6A88;
   public static final int SW_CONDITIONS_OF_USE_NOT_SATISFIED = 0x6985; // applet may be already installed
+  public static final int SW_WRONG_PIN_MASK = 0x63C0;
 
   private byte[] apdu;
   private byte[] data;
@@ -84,6 +85,20 @@ public class APDUResponse {
         throw new APDUException(this.sw, "authentication method blocked");
       default:
         throw new APDUException(this.sw,  "Unexpected error SW");
+    }
+  }
+
+  /**
+   * Checks response from an authentication command (VERIFY PIN, UNBLOCK PUK)
+   *
+   * @throws WrongPINException wrong PIN
+   * @throws APDUException unexpected response
+   */
+  public APDUResponse checkAuthOK() throws WrongPINException, APDUException {
+    if ((this.sw & SW_WRONG_PIN_MASK) == SW_WRONG_PIN_MASK) {
+      throw new WrongPINException(sw2 & 0x0F);
+    } else {
+      return checkOK();
     }
   }
 

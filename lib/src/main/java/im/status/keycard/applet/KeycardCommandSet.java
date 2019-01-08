@@ -1,9 +1,6 @@
 package im.status.keycard.applet;
 
-import im.status.keycard.io.APDUCommand;
-import im.status.keycard.io.APDUException;
-import im.status.keycard.io.APDUResponse;
-import im.status.keycard.io.CardChannel;
+import im.status.keycard.io.*;
 import org.bouncycastle.jce.interfaces.ECPrivateKey;
 import org.bouncycastle.jce.interfaces.ECPublicKey;
 
@@ -74,11 +71,19 @@ public class KeycardCommandSet {
   private final CardChannel apduChannel;
   private SecureChannelSession secureChannel;
 
+  /**
+   * Creates a KeycardCommandSet using the given APDU Channel
+   * @param apduChannel APDU channel
+   */
   public KeycardCommandSet(CardChannel apduChannel) {
     this.apduChannel = apduChannel;
     this.secureChannel = new SecureChannelSession();
   }
 
+  /**
+   * Set the SecureChannel object
+   * @param secureChannel secure channel
+   */
   protected void setSecureChannel(SecureChannelSession secureChannel) {
     this.secureChannel = secureChannel;
   }
@@ -257,7 +262,7 @@ public class KeycardCommandSet {
    * Sends a VERIFY PIN APDU. The raw bytes of the given string are encrypted using the secure channel and used as APDU
    * data.
    *
-   * @param pin the pin
+   * @param pin the PIN
    * @return the raw card response
    * @throws IOException communication error
    */
