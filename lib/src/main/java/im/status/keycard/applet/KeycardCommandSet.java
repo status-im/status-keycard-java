@@ -36,6 +36,10 @@ public class KeycardCommandSet {
   static final byte INS_SET_PINLESS_PATH = (byte) 0xC1;
   static final byte INS_EXPORT_KEY = (byte) 0xC2;
 
+  public static final byte CHANGE_PIN_P1_USER_PIN = 0x00;
+  public static final byte CHANGE_PIN_P1_PUK = 0x01;
+  public static final byte CHANGE_PIN_P1_PAIRING_SECRET = 0x02;
+
   public static final byte GET_STATUS_P1_APPLICATION = 0x00;
   public static final byte GET_STATUS_P1_KEY_PATH = 0x01;
 
@@ -260,6 +264,40 @@ public class KeycardCommandSet {
   public APDUResponse verifyPIN(String pin) throws IOException {
     APDUCommand verifyPIN = secureChannel.protectedCommand(0x80, INS_VERIFY_PIN, 0, 0, pin.getBytes());
     return secureChannel.transmit(apduChannel, verifyPIN);
+  }
+
+  /**
+   * Sends a CHANGE PIN APDU to change the user PIN.
+   *
+   * @param pin the new PIN
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse changePIN(String pin) throws IOException {
+    return changePIN(CHANGE_PIN_P1_USER_PIN, pin.getBytes());
+  }
+
+  /**
+   * Sends a CHANGE PIN APDU to change the PUK.
+   *
+   * @param puk the new PUK
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse changePUK(String puk) throws IOException {
+    return changePIN(CHANGE_PIN_P1_PUK, puk.getBytes());
+  }
+
+  /**
+   * Sends a CHANGE PIN APDU to change the pairing password. This does not break existing pairings, but new pairings
+   * will be made using the new password.
+   *
+   * @param pairingPassword the new pairing password
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse changePairingPassword(String pairingPassword) throws IOException {
+    return changePIN(CHANGE_PIN_P1_PAIRING_SECRET, pairingPasswordToSecret(pairingPassword));
   }
 
   /**
