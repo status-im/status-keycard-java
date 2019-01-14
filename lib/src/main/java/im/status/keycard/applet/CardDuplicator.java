@@ -1,96 +1,118 @@
 package im.status.keycard.applet;
 
 import im.status.keycard.io.APDUException;
-import im.status.keycard.io.CardChannel;
+import im.status.keycard.io.WrongPINException;
 
 import java.io.IOException;
 import java.security.SecureRandom;
 
 /**
- * Class helping with the card duplication process. Depending on the device's role, only some of the methods are relevant.
- *
- * WORK IN PROGRESS, DO NOT USE YET
+ * Class helping with the card duplication process. Depending on the client's role, only some of the methods are relevant.
  */
 public class CardDuplicator {
   private byte[] secret;
+  private KeycardCommandSet cmdSet;
+  private DuplicatorCallback cb;
 
   /**
-   * Creates a CardDuplicator object. Regardless of the role of the device, this object must be kept and used for the
+   * Creates a CardDuplicator object. Regardless of the role of the client, this object must be kept and used for the
    * entire duplication session. It cannot be reused for multiple sessions.
+   * 
+   * @param cmdSet the CommandSet to use
+   * @param cb the callback object for backups. This is needed only on the client performing steps requiring pairing
+   *           and authentication. Clients which only add entropy should pass null
    */
-  public CardDuplicator() {
-    secret = new byte[32];
+  public CardDuplicator(KeycardCommandSet cmdSet, DuplicatorCallback cb) {
+    this.cmdSet = cmdSet;
+    this.cb = cb;
+    this.secret = new byte[32];
     SecureRandom random = new SecureRandom();
-    random.nextBytes(secret);
+    random.nextBytes(this.secret);
   }
 
-  private KeycardCommandSet preamble(CardChannel channel, Pairing pairing, String pin) throws IOException, APDUException {
-    KeycardCommandSet cmdSet = new KeycardCommandSet(channel);
-    cmdSet.select().checkOK();
+  /**
+   * Creates a CardDuplicator object. Convenience version of the constructor without DuplicatorCallback argument.
+   *
+   * @param cmdSet the CommandSet to use
+   */
+  public CardDuplicator(KeycardCommandSet cmdSet) {
+    this(cmdSet, null);
+  }
+
+
+  private void preamble() throws IOException, APDUException {
+    ApplicationInfo appInfo = new ApplicationInfo(cmdSet.select().checkOK().getData());
+    Pairing pairing = cb.getPairing(appInfo);
+
+    if (pairing == null) {
+      throw new APDUException("The given card is not paired");
+    }
+
     cmdSet.setPairing(pairing);
     cmdSet.autoOpenSecureChannel();
-    cmdSet.verifyPIN(pin).checkOK();
-    return cmdSet;
+    ApplicationStatus appStatus = new ApplicationStatus(cmdSet.getStatus(KeycardCommandSet.GET_STATUS_P1_APPLICATION).checkOK().getData());
+    int remainingAttempts = appStatus.getPINRetryCount();
+
+    while(remainingAttempts > 0) {
+      try {
+        cmdSet.verifyPIN(cb.getPIN(appInfo, remainingAttempts)).checkAuthOK();
+        break;
+      } catch(WrongPINException e) {
+        remainingAttempts = e.getRetryAttempts();
+      }
+    }
+
+    if (remainingAttempts <= 0) {
+      throw new APDUException("Card blocked");
+    }
   }
 
   /**
    * Starts duplication session. Must be used on all cards taking part of in the duplication process.
    *
-   * @param channel the card channel
-   * @param pairing the pairing info
-   * @param pin the card PIN
-   * @param deviceCount the number of devices which will be adding entropy for the key, including this one
+   * @param clientCount the number of clients which will be adding entropy for the key, including this one
    *
    * @throws IOException communication error
    * @throws APDUException unexpected card response
    */
-  public void startDuplication(CardChannel channel, Pairing pairing, String pin, int deviceCount) throws IOException, APDUException {
-    KeycardCommandSet cmdSet = preamble(channel, pairing, pin);
-    cmdSet.duplicateKeyStart(deviceCount, secret).checkOK();
+  public void startDuplication(int clientCount) throws IOException, APDUException {
+    preamble();
+    cmdSet.duplicateKeyStart(clientCount, secret).checkOK();
   }
 
   /**
    * Exports key. Must be used on the card designated as the source for the duplication.
    *
-   * @param channel the card channel
-   * @param pairing the pairing info
-   * @param pin the card PIN
-   *
    * @throws IOException communication error
    * @throws APDUException unexpected card response
    */
-  public byte[] exportKey(CardChannel channel, Pairing pairing, String pin) throws IOException, APDUException {
-    KeycardCommandSet cmdSet = preamble(channel, pairing, pin);
+  public byte[] exportKey() throws IOException, APDUException {
+    preamble();
     return cmdSet.duplicateKeyExport().checkOK().getData();
   }
 
   /**
    * Imports key. Must be used on all cards designated as the target for the duplication.
-   * @param channel the card channel
-   * @param pairing the pairing info
-   * @param pin the user PIN
+   *
    * @param key the key to import
    * @return the key UID
    * @throws IOException communication error
    * @throws APDUException unexpected card response
    */
-  public byte[] importKey(CardChannel channel, Pairing pairing, String pin, byte[] key) throws IOException, APDUException {
-    KeycardCommandSet cmdSet = preamble(channel, pairing, pin);
+  public byte[] importKey(byte[] key) throws IOException, APDUException {
+    preamble();
     return cmdSet.duplicateKeyImport(key).checkOK().getData();
   }
 
   /**
-   * Adds entropy. Must be used on all cards taking part in the backup process. Each device taking part must use this
-   * exactly once, except for the device which started the backup.
+   * Adds entropy. Must be used on all cards taking part in the backup process. Each client taking part must use this
+   * exactly once, except for the client which started the backup.
    *
-   * @param channel
    * @throws IOException communication error
    * @throws APDUException unexpected card response
    */
-  public void addEntropy(CardChannel channel) throws IOException, APDUException {
-    KeycardCommandSet cmdSet = new KeycardCommandSet(channel);
+  public void addEntropy() throws IOException, APDUException {
     cmdSet.select().checkOK();
     cmdSet.duplicateKeyAddEntropy(secret).checkOK();
   }
-
 }
