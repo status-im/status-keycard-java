@@ -6,6 +6,7 @@ import im.status.keycard.io.WrongPINException;
 
 import java.io.IOException;
 import java.security.SecureRandom;
+import java.util.HashSet;
 
 /**
  * Class helping with the card duplication process. Depending on the client's role, only some of the methods are relevant.
@@ -14,6 +15,10 @@ public class CardDuplicator {
   private byte[] secret;
   private KeycardCommandSet cmdSet;
   private DuplicatorCallback cb;
+
+  private HashSet<byte[]> startedDuplication;
+  private HashSet<byte[]> addedEntropy;
+  private HashSet<byte[]> finishedDuplication;
 
   /**
    * Creates a CardDuplicator object. Regardless of the role of the client, this object must be kept and used for the
@@ -26,6 +31,10 @@ public class CardDuplicator {
   public CardDuplicator(KeycardCommandSet cmdSet, DuplicatorCallback cb) {
     this.cmdSet = cmdSet;
     this.cb = cb;
+    this.startedDuplication = new HashSet<>();
+    this.addedEntropy = new HashSet<>();
+    this.finishedDuplication = new HashSet<>();
+
     this.secret = new byte[32];
     SecureRandom random = new SecureRandom();
     random.nextBytes(this.secret);
@@ -40,9 +49,19 @@ public class CardDuplicator {
     this(new KeycardCommandSet(channel), null);
   }
 
-
-  private void preamble() throws IOException, APDUException {
+  private ApplicationInfo selectAndCheck(HashSet<byte[]> processed) throws APDUException, IOException {
     ApplicationInfo appInfo = new ApplicationInfo(cmdSet.select().checkOK().getData());
+
+    if (!processed.add(appInfo.getInstanceUID())) {
+      throw new IllegalStateException("The requested action has been already performed on this card");
+    }
+
+    return appInfo;
+  }
+
+  private void preamble(HashSet<byte[]> processed) throws IOException, APDUException {
+    ApplicationInfo appInfo = selectAndCheck(processed);
+
     Pairing pairing = cb.getPairing(appInfo);
 
     if (pairing == null) {
@@ -75,9 +94,10 @@ public class CardDuplicator {
    *
    * @throws IOException communication error
    * @throws APDUException unexpected card response
+   * @throws IllegalStateException this card has already been used
    */
-  public void startDuplication(int clientCount) throws IOException, APDUException {
-    preamble();
+  public void startDuplication(int clientCount) throws IOException, APDUException, IllegalStateException {
+    preamble(startedDuplication);
     cmdSet.duplicateKeyStart(clientCount, secret).checkOK();
   }
 
@@ -87,8 +107,8 @@ public class CardDuplicator {
    * @throws IOException communication error
    * @throws APDUException unexpected card response
    */
-  public byte[] exportKey() throws IOException, APDUException {
-    preamble();
+  public byte[] exportKey() throws IOException, APDUException, IllegalStateException {
+    preamble(finishedDuplication);
     return cmdSet.duplicateKeyExport().checkOK().getData();
   }
 
@@ -99,9 +119,10 @@ public class CardDuplicator {
    * @return the key UID
    * @throws IOException communication error
    * @throws APDUException unexpected card response
+   * @throws IllegalStateException this card has already been used
    */
-  public byte[] importKey(byte[] key) throws IOException, APDUException {
-    preamble();
+  public byte[] importKey(byte[] key) throws IOException, APDUException, IllegalStateException {
+    preamble(finishedDuplication);
     return cmdSet.duplicateKeyImport(key).checkOK().getData();
   }
 
@@ -111,9 +132,10 @@ public class CardDuplicator {
    *
    * @throws IOException communication error
    * @throws APDUException unexpected card response
+   * @throws IllegalStateException this card has already been used
    */
-  public void addEntropy() throws IOException, APDUException {
-    cmdSet.select().checkOK();
+  public void addEntropy() throws IOException, APDUException, IllegalStateException {
+    selectAndCheck(addedEntropy);
     cmdSet.duplicateKeyAddEntropy(secret).checkOK();
   }
 }
