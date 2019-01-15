@@ -1,6 +1,7 @@
 package im.status.keycard.applet;
 
 import im.status.keycard.io.APDUException;
+import im.status.keycard.io.CardChannel;
 import im.status.keycard.io.WrongPINException;
 
 import java.io.IOException;
@@ -31,12 +32,12 @@ public class CardDuplicator {
   }
 
   /**
-   * Creates a CardDuplicator object. Convenience version of the constructor without DuplicatorCallback argument.
+   * Creates a CardDuplicator object. Only suitable for clients performing the role of adding entropy.
    *
-   * @param cmdSet the CommandSet to use
+   * @param channel the APDU channel
    */
-  public CardDuplicator(KeycardCommandSet cmdSet) {
-    this(cmdSet, null);
+  public CardDuplicator(CardChannel channel) {
+    this(new KeycardCommandSet(channel), null);
   }
 
 
