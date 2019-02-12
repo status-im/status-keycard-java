@@ -11,11 +11,20 @@ public class ApplicationInfo {
   private short appVersion;
   private byte freePairingSlots;
   private byte[] keyUID;
+  private byte capabilities;
 
   public static final byte TLV_APPLICATION_INFO_TEMPLATE = (byte) 0xA4;
   public static final byte TLV_PUB_KEY = (byte) 0x80;
   public static final byte TLV_UID = (byte) 0x8F;
   public static final byte TLV_KEY_UID = (byte) 0x8E;
+  public static final byte TLV_CAPABILITIES = (byte) 0x8D;
+
+  static final byte CAPABILITY_SECURE_CHANNEL = (byte) 0x01;
+  static final byte CAPABILITY_KEY_MANAGEMENT = (byte) 0x02;
+  static final byte CAPABILITY_CREDENTIALS_MANAGEMENT = (byte) 0x04;
+  static final byte CAPABILITY_NDEF = (byte) 0x08;
+
+  static final byte CAPABILITIES_ALL = CAPABILITY_SECURE_CHANNEL | CAPABILITY_KEY_MANAGEMENT | CAPABILITY_CREDENTIALS_MANAGEMENT | CAPABILITY_NDEF;
 
   /**
    * Constructs an object by parsing the TLV data.
@@ -41,6 +50,14 @@ public class ApplicationInfo {
     appVersion = (short) tlv.readInt();
     freePairingSlots = (byte) tlv.readInt();
     keyUID = tlv.readPrimitive(TLV_KEY_UID);
+
+    if (tlv.readTag() != TinyBERTLV.END_OF_TLV) {
+      tlv.unreadLastTag();
+      capabilities = tlv.readPrimitive(TLV_CAPABILITIES)[0];
+    } else {
+      capabilities = CAPABILITIES_ALL;
+    }
+
     initializedCard = true;
   }
 
@@ -114,5 +131,30 @@ public class ApplicationInfo {
    */
   public byte[] getKeyUID() {
     return keyUID;
+  }
+
+  /**
+   * Returns the capability descriptor for the device.
+   *
+   * @return the capability descriptor for the device.
+   */
+  public byte getCapabilities() {
+    return capabilities;
+  }
+
+  public boolean hasSecureChannelCapability() {
+    return (capabilities & CAPABILITY_SECURE_CHANNEL) == CAPABILITY_SECURE_CHANNEL;
+  }
+
+  public boolean hasKeyManagementCapability() {
+    return (capabilities & CAPABILITY_KEY_MANAGEMENT) == CAPABILITY_KEY_MANAGEMENT;
+  }
+
+  public boolean hasCredentialsManagementCapability() {
+    return (capabilities & CAPABILITY_CREDENTIALS_MANAGEMENT) == CAPABILITY_CREDENTIALS_MANAGEMENT;
+  }
+
+  public boolean hasNDEFCapability() {
+    return (capabilities & CAPABILITY_NDEF) == CAPABILITY_NDEF;
   }
 }
