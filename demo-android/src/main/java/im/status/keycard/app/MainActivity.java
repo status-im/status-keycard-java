@@ -54,20 +54,27 @@ public class MainActivity extends AppCompatActivity {
           } else {
             Log.i(TAG, "The card has no master key");
           }
+          Log.i(TAG,  String.format("Capabilities: %02X", info.getCapabilities()));
+          Log.i(TAG, "Has Secure Channel: " + info.hasSecureChannelCapability());
+          Log.i(TAG, "Has Key Management: " + info.hasKeyManagementCapability());
+          Log.i(TAG, "Has Credentials Management: " + info.hasCredentialsManagementCapability());
+          Log.i(TAG, "Has NDEF capability: " + info.hasNDEFCapability());
 
-          // In real projects, the pairing key should be saved and used for all new sessions.
-          cmdSet.autoPair("KeycardTest");
-          Pairing pairing = cmdSet.getPairing();
+          if (info.hasSecureChannelCapability()) {
+            // In real projects, the pairing key should be saved and used for all new sessions.
+            cmdSet.autoPair("KeycardTest");
+            Pairing pairing = cmdSet.getPairing();
 
-          // Never log the pairing key in a real application!
-          Log.i(TAG, "Pairing with card is done.");
-          Log.i(TAG, "Pairing index: " + pairing.getPairingIndex());
-          Log.i(TAG, "Pairing key: " + Hex.toHexString(pairing.getPairingKey()));
+            // Never log the pairing key in a real application!
+            Log.i(TAG, "Pairing with card is done.");
+            Log.i(TAG, "Pairing index: " + pairing.getPairingIndex());
+            Log.i(TAG, "Pairing key: " + Hex.toHexString(pairing.getPairingKey()));
 
-          // Opening a Secure Channel is needed for all other applet commands
-          cmdSet.autoOpenSecureChannel();
+            // Opening a Secure Channel is needed for all other applet commands
+            cmdSet.autoOpenSecureChannel();
 
-          Log.i(TAG, "Secure channel opened. Getting applet status.");
+            Log.i(TAG, "Secure channel opened. Getting applet status.");
+          }
 
           // We send a GET STATUS command, which does not require PIN authentication
           ApplicationStatus status = new ApplicationStatus(cmdSet.getStatus(KeycardCommandSet.GET_STATUS_P1_APPLICATION).checkOK().getData());
@@ -76,27 +83,31 @@ public class MainActivity extends AppCompatActivity {
           Log.i(TAG, "PUK retry counter: " + status.getPUKRetryCount());
           Log.i(TAG, "Has master key: " + status.hasMasterKey());
 
-          // A mnemonic can be generated before PIN authentication. Generating a mnemonic does not create keys on the
-          // card. a subsequent loadKey step must be performed after PIN authentication. In this example we will only
-          // show how to convert the output of the card to a usable format but won't actually load the key
-          Mnemonic mnemonic = new Mnemonic(cmdSet.generateMnemonic(KeycardCommandSet.GENERATE_MNEMONIC_12_WORDS).checkOK().getData());
+          if (info.hasKeyManagementCapability()) {
+            // A mnemonic can be generated before PIN authentication. Generating a mnemonic does not create keys on the
+            // card. a subsequent loadKey step must be performed after PIN authentication. In this example we will only
+            // show how to convert the output of the card to a usable format but won't actually load the key
+            Mnemonic mnemonic = new Mnemonic(cmdSet.generateMnemonic(KeycardCommandSet.GENERATE_MNEMONIC_12_WORDS).checkOK().getData());
 
-          // We need to set a wordlist if we plan using this object to derive the binary seed. If we just need the word
-          // indexes we can skip this step and call mnemonic.getIndexes() instead.
-          mnemonic.fetchBIP39EnglishWordlist();
+            // We need to set a wordlist if we plan using this object to derive the binary seed. If we just need the word
+            // indexes we can skip this step and call mnemonic.getIndexes() instead.
+            mnemonic.fetchBIP39EnglishWordlist();
 
-          Log.i(TAG, "Generated mnemonic phrase: " + mnemonic.toMnemonicPhrase());
-          Log.i(TAG, "Binary seed: " + Hex.toHexString(mnemonic.toBinarySeed()));
+            Log.i(TAG, "Generated mnemonic phrase: " + mnemonic.toMnemonicPhrase());
+            Log.i(TAG, "Binary seed: " + Hex.toHexString(mnemonic.toBinarySeed()));
+          }
 
-          // PIN authentication allows execution of privileged commands
-          cmdSet.verifyPIN("000000").checkAuthOK();
+          if (info.hasCredentialsManagementCapability()) {
+            // PIN authentication allows execution of privileged commands
+            cmdSet.verifyPIN("000000").checkAuthOK();
 
-          Log.i(TAG, "Pin Verified.");
+            Log.i(TAG, "Pin Verified.");
+          }
 
           // If the card has no keys, we generate a new set. Keys can also be loaded on the card starting from a binary
           // seed generated from a mnemonic phrase. In alternative, we could load the generated keypair as shown in the
           // commented line of code.
-          if (!status.hasMasterKey()) {
+          if (!status.hasMasterKey() && info.hasKeyManagementCapability()) {
             cmdSet.generateKey();
             //cmdSet.loadKey(mnemonic.toBIP32KeyPair());
           }
@@ -127,14 +138,15 @@ public class MainActivity extends AppCompatActivity {
           Log.i(TAG, "R: " + Hex.toHexString(signature.getR()));
           Log.i(TAG, "S: " + Hex.toHexString(signature.getS()));
 
-          // Cleanup, in a real application you would not unpair and instead keep the pairing key for successive interactions.
-          // We also remove all other pairings so that we do not fill all slots with failing runs. Again in real application
-          // this would be a very bad idea to do.
-          cmdSet.unpairOthers();
-          cmdSet.autoUnpair();
+          if (info.hasSecureChannelCapability()) {
+            // Cleanup, in a real application you would not unpair and instead keep the pairing key for successive interactions.
+            // We also remove all other pairings so that we do not fill all slots with failing runs. Again in real application
+            // this would be a very bad idea to do.
+            cmdSet.unpairOthers();
+            cmdSet.autoUnpair();
 
-          Log.i(TAG, "Unpaired.");
-
+            Log.i(TAG, "Unpaired.");
+          }
         } catch (Exception e) {
           Log.e(TAG, e.getMessage());
         }
