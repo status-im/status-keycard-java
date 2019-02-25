@@ -21,13 +21,13 @@ public class Crypto {
   public static long PIN_BOUND = 999999L;
   public static long PUK_BOUND = 999999999999L;
 
-  private static boolean spongyCastleLoaded = false;
+  private static boolean bouncyCastleLoaded = false;
 
-  public static void addSpongyCastleProvider() {
-    if (!spongyCastleLoaded) {
+  public static void addBouncyCastleProvider() {
+    if (!bouncyCastleLoaded) {
       Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
       Security.addProvider(new BouncyCastleProvider());
-      spongyCastleLoaded = true;
+      bouncyCastleLoaded = true;
     }
   }
 

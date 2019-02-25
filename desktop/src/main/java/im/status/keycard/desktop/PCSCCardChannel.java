@@ -15,7 +15,7 @@ import java.io.IOException;
  */
 public class PCSCCardChannel implements CardChannel {
   static {
-    Crypto.addSpongyCastleProvider();
+    Crypto.addBouncyCastleProvider();
   }
 
   private javax.smartcardio.CardChannel cardChannel;

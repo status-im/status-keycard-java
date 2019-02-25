@@ -24,7 +24,7 @@ public class NFCCardManager extends Thread implements NfcAdapter.ReaderCallback 
   private int loopSleepMS;
 
   static {
-    Crypto.addSpongyCastleProvider();
+    Crypto.addBouncyCastleProvider();
   }
 
   /**
