@@ -70,6 +70,7 @@ public class KeycardCommandSet {
 
   private final CardChannel apduChannel;
   private SecureChannelSession secureChannel;
+  private ApplicationInfo info;
 
   /**
    * Creates a KeycardCommandSet using the given APDU Channel
@@ -78,6 +79,16 @@ public class KeycardCommandSet {
   public KeycardCommandSet(CardChannel apduChannel) {
     this.apduChannel = apduChannel;
     this.secureChannel = new SecureChannelSession();
+  }
+
+  /**
+   * Returns the application info as stored from the last sent SELECT command. Returns null if no succesful SELECT
+   * command has been sent using this command set.
+   *
+   * @return the application info object
+   */
+  public ApplicationInfo getApplicationInfo() {
+    return info;
   }
 
   /**
@@ -126,9 +137,14 @@ public class KeycardCommandSet {
     APDUCommand selectApplet = new APDUCommand(0x00, 0xA4, 4, 0, Identifiers.getKeycardInstanceAID(instanceIdx));
     APDUResponse resp =  apduChannel.send(selectApplet);
 
+
     if (resp.getSw() == 0x9000) {
-      this.secureChannel.generateSecret(extractPublicKeyFromSelect(resp.getData()));
-      this.secureChannel.reset();
+      info = new ApplicationInfo(resp.getData());
+
+      if (info.hasSecureChannelCapability()) {
+        this.secureChannel.generateSecret(info.getSecureChannelPubKey());
+        this.secureChannel.reset();
+      }
     }
 
     return resp;
@@ -659,9 +675,5 @@ public class KeycardCommandSet {
     System.arraycopy(sharedSecret, 0, initData, pin.length() + puk.length(), sharedSecret.length);
     APDUCommand init = new APDUCommand(0x80, INS_INIT, 0, 0, secureChannel.oneShotEncrypt(initData));
     return apduChannel.send(init);
-  }
-
-  private byte[] extractPublicKeyFromSelect(byte[] select) {
-    return new ApplicationInfo(select).getSecureChannelPubKey();
   }
 }

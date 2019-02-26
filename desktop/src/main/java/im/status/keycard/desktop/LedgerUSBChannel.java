@@ -7,7 +7,6 @@ import org.hid4java.HidDevice;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 public class LedgerUSBChannel implements CardChannel {
   private static final int HID_BUFFER_SIZE = 64;
@@ -30,6 +29,7 @@ public class LedgerUSBChannel implements CardChannel {
     byte[] command = wrapCommandAPDU(cmd.serialize());
 
     byte[] chunk = new byte[HID_BUFFER_SIZE];
+
     while(offset != command.length) {
       int blockSize = (command.length - offset > HID_BUFFER_SIZE ? HID_BUFFER_SIZE : command.length - offset);
       System.arraycopy(command, offset, chunk, 0, blockSize);
@@ -55,41 +55,21 @@ public class LedgerUSBChannel implements CardChannel {
   }
 
   private byte[] unwrapResponseAPDU(byte[] data) throws IOException {
-    ByteArrayOutputStream response = new ByteArrayOutputStream();
-    int offset = 0;
-    int responseLength;
-    int sequenceIdx = 0;
-
     if ((data == null) || (data.length < 7 + 5)) {
       return null;
     }
 
-    if (data[offset++] != (LEDGER_DEFAULT_CHANNEL >> 8)) {
-      throw new IOException("Invalid channel");
-    }
+    int sequenceIdx = 0;
+    int offset = checkResponseHeader(data, 0, sequenceIdx);
 
-    if (data[offset++] != (LEDGER_DEFAULT_CHANNEL & 0xff)) {
-      throw new IOException("Invalid channel");
-    }
-
-    if (data[offset++] != TAG_APDU) {
-      throw new IOException("Invalid tag");
-    }
-
-    if (data[offset++] != 0x00) {
-      throw new IOException("Invalid sequence");
-    }
-
-    if (data[offset++] != 0x00) {
-      throw new IOException("Invalid sequence");
-    }
-
-    responseLength = ((data[offset++] & 0xff) << 8);
+    int  responseLength = ((data[offset++] & 0xff) << 8);
     responseLength |= (data[offset++] & 0xff);
 
     if (data.length < 7 + responseLength) {
       return null;
     }
+
+    ByteArrayOutputStream response = new ByteArrayOutputStream();
 
     int blockSize = (responseLength > HID_BUFFER_SIZE - 7 ? HID_BUFFER_SIZE - 7 : responseLength);
     response.write(data, offset, blockSize);
@@ -102,25 +82,7 @@ public class LedgerUSBChannel implements CardChannel {
         return null;
       }
 
-      if (data[offset++] != (LEDGER_DEFAULT_CHANNEL >> 8)) {
-        throw new IOException("Invalid channel");
-      }
-
-      if (data[offset++] != (LEDGER_DEFAULT_CHANNEL & 0xff)) {
-        throw new IOException("Invalid channel");
-      }
-
-      if (data[offset++] != TAG_APDU) {
-        throw new IOException("Invalid tag");
-      }
-
-      if (data[offset++] != (sequenceIdx >> 8)) {
-        throw new IOException("Invalid sequence");
-      }
-
-      if (data[offset++] != (sequenceIdx & 0xff)) {
-        throw new IOException("Invalid sequence");
-      }
+      offset = checkResponseHeader(data, offset, sequenceIdx);
 
       blockSize = (responseLength - response.size() > HID_BUFFER_SIZE - 5 ? HID_BUFFER_SIZE - 5 : responseLength - response.size());
       if (blockSize > data.length - offset) {
@@ -133,17 +95,37 @@ public class LedgerUSBChannel implements CardChannel {
     return response.toByteArray();
   }
 
+  private int checkResponseHeader(byte[] data, int offset, int sequenceIdx) throws IOException {
+    if (data[offset++] != (LEDGER_DEFAULT_CHANNEL >> 8)) {
+      throw new IOException("Invalid channel");
+    }
+
+    if (data[offset++] != (LEDGER_DEFAULT_CHANNEL & 0xff)) {
+      throw new IOException("Invalid channel");
+    }
+
+    if (data[offset++] != TAG_APDU) {
+      throw new IOException("Invalid tag");
+    }
+
+    if (data[offset++] != (sequenceIdx >> 8)) {
+      throw new IOException("Invalid sequence");
+    }
+
+    if (data[offset++] != (sequenceIdx & 0xff)) {
+      throw new IOException("Invalid sequence");
+    }
+    return offset;
+  }
+
   private byte[] wrapCommandAPDU(byte[] command) {
     ByteArrayOutputStream output = new ByteArrayOutputStream();
 
     int sequenceIdx = 0;
     int offset = 0;
-    output.write(LEDGER_DEFAULT_CHANNEL >> 8);
-    output.write(LEDGER_DEFAULT_CHANNEL);
-    output.write(TAG_APDU);
-    output.write(sequenceIdx >> 8);
-    output.write(sequenceIdx);
+    writeCommandHeader(output, sequenceIdx);
     sequenceIdx++;
+
     output.write(command.length >> 8);
     output.write(command.length);
     int blockSize = (command.length > HID_BUFFER_SIZE - 7 ? HID_BUFFER_SIZE - 7 : command.length);
@@ -151,12 +133,9 @@ public class LedgerUSBChannel implements CardChannel {
     offset += blockSize;
 
     while (offset != command.length) {
-      output.write(LEDGER_DEFAULT_CHANNEL >> 8);
-      output.write(LEDGER_DEFAULT_CHANNEL);
-      output.write(TAG_APDU);
-      output.write(sequenceIdx >> 8);
-      output.write(sequenceIdx);
+      writeCommandHeader(output, sequenceIdx);
       sequenceIdx++;
+
       blockSize = (command.length - offset > HID_BUFFER_SIZE - 5 ? HID_BUFFER_SIZE - 5 : command.length - offset);
       output.write(command, offset, blockSize);
       offset += blockSize;
@@ -168,6 +147,14 @@ public class LedgerUSBChannel implements CardChannel {
     }
 
     return output.toByteArray();
+  }
+
+  private void writeCommandHeader(ByteArrayOutputStream output, int sequenceIdx) {
+    output.write(LEDGER_DEFAULT_CHANNEL >> 8);
+    output.write(LEDGER_DEFAULT_CHANNEL);
+    output.write(TAG_APDU);
+    output.write(sequenceIdx >> 8);
+    output.write(sequenceIdx);
   }
 
   @Override
