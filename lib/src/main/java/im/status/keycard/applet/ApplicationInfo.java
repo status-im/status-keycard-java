@@ -41,6 +41,12 @@ public class ApplicationInfo {
     if (topTag == TLV_PUB_KEY) {
       secureChannelPubKey = tlv.readPrimitive(TLV_PUB_KEY);
       initializedCard = false;
+      capabilities = CAPABILITY_CREDENTIALS_MANAGEMENT;
+
+      if (secureChannelPubKey.length > 0) {
+        capabilities |= CAPABILITY_SECURE_CHANNEL;
+      }
+
       return;
     }
 
