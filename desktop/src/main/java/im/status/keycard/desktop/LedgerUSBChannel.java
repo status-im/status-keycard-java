@@ -12,6 +12,7 @@ public class LedgerUSBChannel implements CardChannel {
   private static final int HID_BUFFER_SIZE = 64;
   private static final int LEDGER_DEFAULT_CHANNEL = 1;
   private static final int TAG_APDU = 0x05;
+  private static final int READ_TIMEOUT = 20000;
 
   private HidDevice hidDevice;
 
@@ -44,7 +45,7 @@ public class LedgerUSBChannel implements CardChannel {
     byte[] responseData = null;
 
     while ((responseData = unwrapResponseAPDU(response.toByteArray())) == null) {
-      if (hidDevice.read(chunk, 500) < 0) {
+      if (hidDevice.read(chunk, READ_TIMEOUT) < 0) {
         throw new IOException("Read failed");
       }
 

@@ -12,6 +12,8 @@ public class LedgerUSBManager implements HidServicesListener {
 
   private static final int VID = 0x2c97;
   private static final int PID = 0x0001;
+  private static final int SCAN_INTERVAL_MS = 500;
+  private static final int PAUSE_INTERVAL_MS = 5000;
 
   private HidServices hidServices;
   private CardListener listener;
@@ -21,8 +23,8 @@ public class LedgerUSBManager implements HidServicesListener {
 
     HidServicesSpecification hidServicesSpecification = new HidServicesSpecification();
     hidServicesSpecification.setAutoShutdown(true);
-    hidServicesSpecification.setScanInterval(500);
-    hidServicesSpecification.setPauseInterval(5000);
+    hidServicesSpecification.setScanInterval(SCAN_INTERVAL_MS);
+    hidServicesSpecification.setPauseInterval(PAUSE_INTERVAL_MS);
     hidServicesSpecification.setScanMode(ScanMode.SCAN_AT_FIXED_INTERVAL_WITH_PAUSE_AFTER_WRITE);
 
     hidServices = HidManager.getHidServices(hidServicesSpecification);
