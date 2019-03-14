@@ -43,8 +43,8 @@ public class RecoverableSignature {
     tlv.enterConstructed(TLV_SIGNATURE_TEMPLATE);
     publicKey = tlv.readPrimitive(ApplicationInfo.TLV_PUB_KEY);
     tlv.enterConstructed(TLV_ECDSA_TEMPLATE);
-    r = tlv.readPrimitive(TinyBERTLV.TLV_INT);
-    s = tlv.readPrimitive(TinyBERTLV.TLV_INT);
+    r = toUInt(tlv.readPrimitive(TinyBERTLV.TLV_INT));
+    s = toUInt(tlv.readPrimitive(TinyBERTLV.TLV_INT));
 
     recId = -1;
 
@@ -59,6 +59,14 @@ public class RecoverableSignature {
 
     if (recId == -1) {
       throw new IllegalArgumentException("Unrecoverable signature, cannot find recId");
+    }
+  }
+
+  private byte[] toUInt(byte[] signedInt) {
+    if (signedInt[0] == 0) {
+      return Arrays.copyOfRange(signedInt, 1, signedInt.length);
+    } else {
+      return signedInt;
     }
   }
 
