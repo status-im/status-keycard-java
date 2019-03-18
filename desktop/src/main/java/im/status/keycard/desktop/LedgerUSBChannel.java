@@ -32,14 +32,13 @@ public class LedgerUSBChannel implements CardChannel {
     byte[] chunk = new byte[HID_BUFFER_SIZE];
 
     while(offset != command.length) {
-      int blockSize = (command.length - offset > HID_BUFFER_SIZE ? HID_BUFFER_SIZE : command.length - offset);
-      System.arraycopy(command, offset, chunk, 0, blockSize);
+      System.arraycopy(command, offset, chunk, 0, HID_BUFFER_SIZE);
 
-      if (hidDevice.write(command, blockSize, (byte) 0x00) < 0) {
+      if (hidDevice.write(chunk, HID_BUFFER_SIZE, (byte) 0x00) < 0) {
         throw new IOException("Write failed");
       }
 
-      offset += blockSize;
+      offset += HID_BUFFER_SIZE;
     }
 
     byte[] responseData = null;
@@ -129,7 +128,7 @@ public class LedgerUSBChannel implements CardChannel {
 
     output.write(command.length >> 8);
     output.write(command.length);
-    int blockSize = (command.length > HID_BUFFER_SIZE - 7 ? HID_BUFFER_SIZE - 7 : command.length);
+    int blockSize = (command.length > (HID_BUFFER_SIZE - 7) ? (HID_BUFFER_SIZE - 7) : command.length);
     output.write(command, offset, blockSize);
     offset += blockSize;
 
@@ -137,7 +136,7 @@ public class LedgerUSBChannel implements CardChannel {
       writeCommandHeader(output, sequenceIdx);
       sequenceIdx++;
 
-      blockSize = (command.length - offset > HID_BUFFER_SIZE - 5 ? HID_BUFFER_SIZE - 5 : command.length - offset);
+      blockSize = ((command.length - offset) > (HID_BUFFER_SIZE - 5) ? (HID_BUFFER_SIZE - 5) : (command.length - offset));
       output.write(command, offset, blockSize);
       offset += blockSize;
     }
