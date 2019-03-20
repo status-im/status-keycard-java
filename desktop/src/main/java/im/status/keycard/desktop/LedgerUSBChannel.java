@@ -164,6 +164,6 @@ public class LedgerUSBChannel implements CardChannel {
 
   @Override
   public int pairingPasswordPBKDF2IterationCount() {
-    return 50000;
+    return 10;
   }
 }
