@@ -161,4 +161,9 @@ public class LedgerUSBChannel implements CardChannel {
   public boolean isConnected() {
     return hidDevice.isOpen();
   }
+
+  @Override
+  public int pairingPasswordPBKDF2IterationCount() {
+    return 50000;
+  }
 }
