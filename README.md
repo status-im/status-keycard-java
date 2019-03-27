@@ -15,7 +15,7 @@ You can import the SDK in your Gradle or Maven project using [Jitpack.io](https:
 
 ```groovy
 dependencies {
-  implementation 'com.github.status-im.status-keycard-java:android:2.0.0'
+  implementation 'com.github.status-im.status-keycard-java:android:2.1.1'
 }
 ```
 
@@ -23,6 +23,6 @@ dependencies {
 
 ```groovy
 dependencies {
-  implementation 'com.github.status-im.status-keycard-java:desktop:2.0.0'
+  implementation 'com.github.status-im.status-keycard-java:desktop:2.1.1'
 }
 ```
