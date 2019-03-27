@@ -11,6 +11,15 @@ android {
         versionCode 201
         versionName "2.0.1"
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lintOptions {
+        abortOnError false
+    }
 }
 
 dependencies {
