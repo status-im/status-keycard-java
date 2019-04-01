@@ -647,13 +647,24 @@ public class KeycardCommandSet {
   }
 
   /**
+   * Sends an empty SET PINLESS PATH APDU, resetting it. After this command the card does not have a PINless path until
+   * a new one is set.
+   *
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse resetPinlessPath() throws IOException {
+      return setPinlessPath(new byte[]{});
+  }
+
+  /**
    * Sends a SET PINLESS PATH APDU. The data is encrypted and sent as-is.
    *
    * @param data the raw key path
    * @return the raw card response
    * @throws IOException communication error
    */
-  public APDUResponse setPinlessPath(byte [] data) throws IOException {
+  public APDUResponse setPinlessPath(byte[] data) throws IOException {
     APDUCommand setPinlessPath = secureChannel.protectedCommand(0x80, INS_SET_PINLESS_PATH, 0x00, 0x00, data);
     return secureChannel.transmit(apduChannel, setPinlessPath);
   }
