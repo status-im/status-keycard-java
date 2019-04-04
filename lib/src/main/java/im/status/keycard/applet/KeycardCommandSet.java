@@ -53,6 +53,11 @@ public class KeycardCommandSet {
   static final byte DUPLICATE_KEY_P1_EXPORT = 0x02;
   static final byte DUPLICATE_KEY_P1_IMPORT = 0x03;
 
+  static final byte SIGN_P1_CURRENT_KEY = 0x00;
+  static final byte SIGN_P1_DERIVE = 0x01;
+  static final byte SIGN_P1_DERIVE_AND_MAKE_CURRENT = 0x02;
+  static final byte SIGN_P1_PINLESS = 0x03;
+
   public static final int GENERATE_MNEMONIC_12_WORDS = 0x04;
   public static final int GENERATE_MNEMONIC_15_WORDS = 0x05;
   public static final int GENERATE_MNEMONIC_18_WORDS = 0x06;
@@ -533,14 +538,58 @@ public class KeycardCommandSet {
   }
 
   /**
-   * Sends a SIGN APDU. This signs a precomputed hash so the input must be exactly 32-bytes long.
+   * Sends a SIGN APDU. This signs a precomputed hash that must be exactly 32-bytes long.
    *
+   * @param hash the hash to sign
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse sign(byte[] hash) throws IOException {
+    return sign(hash, SIGN_P1_CURRENT_KEY);
+  }
+
+  /**
+   * Sends a SIGN APDU. This signs a precomputed hash that must be exactly 32-bytes long. The key used to sign is given
+   * as a parameter.
+   *
+   * @param hash the hash to sign
+   * @params path the path of the key to use
+   * @param makeCurrent ture if the key used to sign should become the current key, false otherwise
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse signWithPath(byte[] hash, String path, boolean makeCurrent) throws IOException {
+    KeyPath keyPath = new KeyPath(path);
+    byte[] pathData = keyPath.getData();
+    byte[] data = Arrays.copyOf(hash, hash.length + pathData.length);
+    System.arraycopy(pathData, 0, data, hash.length, pathData.length);
+    return sign(data, keyPath.getSource() | (makeCurrent ? SIGN_P1_DERIVE_AND_MAKE_CURRENT : SIGN_P1_DERIVE));
+  }
+
+  /**
+   * Sends a SIGN APDU. This signs a precomputed hash that must be exactly 32-bytes long. The pinless path will be used
+   * to sign. This command is the only variant of SIGN which can also be executed without a Secure Channel.
+   *
+   * @param hash the hash to sign
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse signPinless(byte[] hash) throws IOException {
+    return sign(hash, SIGN_P1_PINLESS);
+  }
+
+
+  /**
+   * Sends a SIGN APDU. This signs a precomputed hash so the input must be exactly 32-bytes long, eventually followed by
+   * a derivation path.
+   *
+   * @param p1 the p1 parameter
    * @param data the data to sign
    * @return the raw card response
    * @throws IOException communication error
    */
-  public APDUResponse sign(byte[] data) throws IOException {
-    APDUCommand sign = secureChannel.protectedCommand(0x80, INS_SIGN, 0x00, 0x00, data);
+  public APDUResponse sign(byte[] data, int p1) throws IOException {
+    APDUCommand sign = secureChannel.protectedCommand(0x80, INS_SIGN, p1, 0x00, data);
     return secureChannel.transmit(apduChannel, sign);
   }
 
@@ -582,13 +631,40 @@ public class KeycardCommandSet {
   }
 
   /**
+   * Sends a SET PINLESS PATH APDU. The path must be absolute, that is starting from the master key.
+
+   * @param path the path. Must be an absolute path (i.e: starting from the master key)
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse setPinlessPath(String path) throws IOException {
+    KeyPath keyPath = new KeyPath(path);
+    if (keyPath.getSource() != DERIVE_P1_SOURCE_MASTER) {
+      throw new IllegalArgumentException("Only absolute paths can be set as PINLESS path");
+    }
+
+    return setPinlessPath(keyPath.getData());
+  }
+
+  /**
+   * Sends an empty SET PINLESS PATH APDU, resetting it. After this command the card does not have a PINless path until
+   * a new one is set.
+   *
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse resetPinlessPath() throws IOException {
+      return setPinlessPath(new byte[]{});
+  }
+
+  /**
    * Sends a SET PINLESS PATH APDU. The data is encrypted and sent as-is.
    *
    * @param data the raw key path
    * @return the raw card response
    * @throws IOException communication error
    */
-  public APDUResponse setPinlessPath(byte [] data) throws IOException {
+  public APDUResponse setPinlessPath(byte[] data) throws IOException {
     APDUCommand setPinlessPath = secureChannel.protectedCommand(0x80, INS_SET_PINLESS_PATH, 0x00, 0x00, data);
     return secureChannel.transmit(apduChannel, setPinlessPath);
   }
