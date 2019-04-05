@@ -121,6 +121,21 @@ public class Crypto {
     }
   }
 
+  public static byte[] ecb3des(byte[] key, byte[] data) {
+    try {
+      Cipher cipher = Cipher.getInstance("DES/ECB/NoPadding", "BC");
+      SecretKeySpec keyDes = new SecretKeySpec(resizeKey24(key), "DES");
+      cipher.init(Cipher.ENCRYPT_MODE, keyDes);
+      return cipher.doFinal(data);
+    } catch (GeneralSecurityException e) {
+      throw new RuntimeException("Could not encrypt data", e);
+    }
+  }
+
+  public static byte[] kcv3des(byte[] key) {
+    return Arrays.copyOf(ecb3des(key, NullBytes8), 3);
+  }
+
   /**
    * Generates a 3DES MAC for SCP02 communication
    *

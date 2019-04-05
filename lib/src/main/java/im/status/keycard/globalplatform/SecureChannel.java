@@ -8,7 +8,7 @@ import im.status.keycard.io.APDUResponse;
 import im.status.keycard.io.CardChannel;
 
 /**
- * An SCP02 Secure Channel. Wraps a CardChannel to allow transparent handling of the scure channel.
+ * An SCP02 Secure Channel. Wraps a CardChannel to allow transparent handling of the secure channel.
  */
 public class SecureChannel {
   private CardChannel channel;
@@ -77,8 +77,9 @@ public class SecureChannel {
 
     byte[] sessionEncKey = Crypto.deriveSCP02SessionKey(cardKeys.getEncKeyData(), seq, DERIVATION_PURPOSE_ENC);
     byte[] sessionMacKey = Crypto.deriveSCP02SessionKey(cardKeys.getMacKeyData(), seq, DERIVATION_PURPOSE_MAC);
+    byte[] sessionDekKey = Crypto.deriveSCP02SessionKey(cardKeys.getDekKeyData(), seq, DERIVATION_PURPOSE_DEK);
 
-    SCP02Keys sessionKeys = new SCP02Keys(sessionEncKey, sessionMacKey);
+    SCP02Keys sessionKeys = new SCP02Keys(sessionEncKey, sessionMacKey, sessionDekKey);
 
     boolean verified = Crypto.verifyCryptogram(sessionKeys.getEncKeyData(), hostChallenge, cardChallenge, cardCryptogram);
     if (!verified) {

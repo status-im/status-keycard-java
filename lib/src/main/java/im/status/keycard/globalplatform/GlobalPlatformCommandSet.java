@@ -24,6 +24,7 @@ public class GlobalPlatformCommandSet {
   static final byte INS_DELETE = (byte) 0xE4;
   static final byte INS_INSTALL = (byte) 0xE6;
   static final byte INS_LOAD = (byte) 0xE8;
+  static final byte INS_PUT_KEY = (byte) 0xD8;
 
   static final byte SELECT_P1_BY_NAME = (byte) 0x04;
   static final byte EXTERNAL_AUTHENTICATE_P1 = (byte) 0x01;
@@ -46,7 +47,7 @@ public class GlobalPlatformCommandSet {
    */
   public GlobalPlatformCommandSet(CardChannel apduChannel) {
     this.apduChannel = apduChannel;
-    this.cardKeys = new SCP02Keys(testKey, testKey);
+    this.cardKeys = new SCP02Keys(testKey, testKey, testKey);
   }
 
   /**
@@ -115,6 +116,49 @@ public class GlobalPlatformCommandSet {
     random.nextBytes(hostChallenge);
     initializeUpdate(hostChallenge).checkOK();
     externalAuthenticate(hostChallenge).checkOK();
+  }
+
+  /**
+   * Sends a PUT KEY APDU to load or replace SCP02 keys. The keys are assumed to be 3DES keys
+   *
+   * @param encKey the ENC key to load
+   * @param macKey the MAC key to load
+   * @param dekKey the DEK key to load
+   * @param oldKvn the KVN to replace, 0 to put a new key without replacing
+   * @param newKvn the KVN of the new keyset
+   * @return
+   * @throws IOException
+   */
+  public APDUResponse putSCP02Keys(byte[] encKey, byte[] macKey, byte[] dekKey, int oldKvn, int newKvn) throws IOException {
+    if (encKey.length != 16 || macKey.length != 16 || dekKey.length != 16){
+      throw new IllegalArgumentException("All keys must be 16-byte 3DES keys");
+    }
+
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    bos.write(newKvn);
+    writeSCP02Key(bos, encKey);
+    writeSCP02Key(bos, macKey);
+    writeSCP02Key(bos, dekKey);
+
+    APDUCommand cmd = new APDUCommand(0x84, INS_PUT_KEY, oldKvn, 0, bos.toByteArray());
+    return this.secureChannel.send(cmd);
+  }
+
+  /**
+   * writes an encrypted key for the PUT KEY command
+   * @param bos the output stream to write to
+   * @param key the key to encrypt and write
+   * @throws IOException if the ByteArrayOutputStream throws it (never)
+   */
+  private void writeSCP02Key(ByteArrayOutputStream bos, byte[] key) throws IOException {
+    byte[] encrypted = Crypto.ecb3des(session.getKeys().getDekKeyData(), key);
+    byte[] kcv = Crypto.kcv3des(key);
+
+    bos.write(0x80);
+    bos.write(encrypted.length);
+    bos.write(encrypted);
+    bos.write(kcv.length);
+    bos.write(kcv);
   }
 
   /**
