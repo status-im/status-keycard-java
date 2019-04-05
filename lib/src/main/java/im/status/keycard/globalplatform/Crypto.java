@@ -123,7 +123,7 @@ public class Crypto {
 
   public static byte[] ecb3des(byte[] key, byte[] data) {
     try {
-      Cipher cipher = Cipher.getInstance("DES/ECB/NoPadding", "BC");
+      Cipher cipher = Cipher.getInstance("DESede/ECB/NoPadding", "BC");
       SecretKeySpec keyDes = new SecretKeySpec(resizeKey24(key), "DES");
       cipher.init(Cipher.ENCRYPT_MODE, keyDes);
       return cipher.doFinal(data);
