@@ -18,6 +18,7 @@ public class SCP02Keys {
   public SCP02Keys(byte[] encKeyData, byte[] macKeyData, byte[] dekKeyData) {
     this.encKeyData = encKeyData;
     this.macKeyData = macKeyData;
+    this.dekKeyData = dekKeyData;
   }
 
   /**
