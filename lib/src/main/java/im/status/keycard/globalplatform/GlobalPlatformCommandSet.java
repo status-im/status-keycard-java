@@ -140,7 +140,7 @@ public class GlobalPlatformCommandSet {
     writeSCP02Key(bos, macKey);
     writeSCP02Key(bos, dekKey);
 
-    APDUCommand cmd = new APDUCommand(0x84, INS_PUT_KEY, oldKvn, 0x80, bos.toByteArray());
+    APDUCommand cmd = new APDUCommand(0x84, INS_PUT_KEY, oldKvn, 0x81, bos.toByteArray());
     return this.secureChannel.send(cmd);
   }
 
