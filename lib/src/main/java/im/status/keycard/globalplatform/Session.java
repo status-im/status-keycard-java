@@ -6,6 +6,7 @@ package im.status.keycard.globalplatform;
 public class Session {
   private SCP02Keys keys;
   private byte[] cardChallenge;
+  private boolean fallbackKeys;
 
   /**
    * Constructs the SCP02 session.
@@ -16,6 +17,7 @@ public class Session {
   public Session(SCP02Keys keys, byte[] cardChallenge) {
     this.keys = keys;
     this.cardChallenge = cardChallenge;
+    this.fallbackKeys = false;
   }
 
   /**
@@ -33,4 +35,21 @@ public class Session {
   public byte[] getCardChallenge() {
     return cardChallenge;
   }
+
+  /**
+   * Marks this session as using a fallback keyset.
+   */
+  public void markAsUsingFallbackKeys() {
+    fallbackKeys = true;
+  }
+
+  /**
+   * True if a fallback keyset is being used.
+   *
+   * @return true or false
+   */
+  public boolean usesFallbackKeys() {
+    return fallbackKeys;
+  }
+
 }

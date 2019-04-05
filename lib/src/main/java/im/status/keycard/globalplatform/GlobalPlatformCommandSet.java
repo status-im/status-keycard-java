@@ -38,7 +38,10 @@ public class GlobalPlatformCommandSet {
   private SCP02Keys cardKeys;
   private Session session;
 
-  private final byte[] testKey = Hex.decode("404142434445464748494a4b4c4d4e4f");
+  private final byte[] gpDefaultKey = Hex.decode("404142434445464748494a4b4c4d4e4f");
+  private final SCP02Keys gpDefaultKeys = new SCP02Keys(gpDefaultKey, gpDefaultKey, gpDefaultKey);
+
+  private final byte[] developmentKey = Hex.decode("c212e073ff8b4bbfaff4de8ab655221f");
 
   /**
    * Constructs a new command set with the given CardChannel.
@@ -47,7 +50,26 @@ public class GlobalPlatformCommandSet {
    */
   public GlobalPlatformCommandSet(CardChannel apduChannel) {
     this.apduChannel = apduChannel;
-    this.cardKeys = new SCP02Keys(testKey, testKey, testKey);
+    setCardKeys(developmentKey);
+  }
+
+  /**
+   * Sets the given key as all of ENC, MAC and DEK static keys, used to derive session keys.
+   * @param key the key
+   */
+  public void setCardKeys(byte[] key) {
+    setCardKeys(key, key, key);
+  }
+
+  /**
+   * Sets the the ENC, MAC and DEK static keys, used to derive session keys.
+   *
+   * @param encKey the ENC key
+   * @param macKey the MAC key
+   * @param dekKey the DEK key
+   */
+  public void setCardKeys(byte[] encKey, byte[] macKey, byte[] dekKey) {
+    this.cardKeys = new SCP02Keys(encKey, macKey, dekKey);;
   }
 
   /**
@@ -75,7 +97,12 @@ public class GlobalPlatformCommandSet {
     APDUCommand cmd = new APDUCommand(0x80, INS_INITIALIZE_UPDATE, 0, 0, hostChallenge, true);
     APDUResponse resp = apduChannel.send(cmd);
     if (resp.isOK()) {
-      this.session = SecureChannel.verifyChallenge(hostChallenge, this.cardKeys, resp);
+      try {
+        this.session = SecureChannel.verifyChallenge(hostChallenge, this.cardKeys, resp);
+      } catch(APDUException e) {
+        this.session = SecureChannel.verifyChallenge(hostChallenge, gpDefaultKeys, resp);
+        this.session.markAsUsingFallbackKeys();
+      }
       this.secureChannel = new SecureChannel(this.apduChannel, this.session.getKeys());
     }
 
@@ -104,18 +131,50 @@ public class GlobalPlatformCommandSet {
     return this.secureChannel.send(cmd);
   }
 
+
   /**
-   * Opens an SCP02 secure channel with default keys.
+   * Convenience method for openSecureChannel with auto key ugprade.
    *
    * @throws APDUException the card didn't respond 0x9000 to either INITIALIZE UPDATE or EXTERNAL AUTHENTICATE
    * @throws IOException communication error
    */
   public void openSecureChannel() throws APDUException, IOException {
+    openSecureChannel(true);
+  }
+
+  /**
+   * Opens an SCP02 secure channel. If with the current keys the card cryptogram cannot be verified, an attempt is made
+   * to use the default GlobalPlatform keys instead. This does not require additional commands to the card. In case
+   * the autoUpgradeKeys is set to true and the default GlobalPlatform keys were used, a PUT KEY command is sent to
+   * change the keys to the current ones.
+   *
+   * @param autoUpgradeKeys upgrade keys if default GP keys are loaded
+   * @throws APDUException the card didn't respond 0x9000 to either INITIALIZE UPDATE or EXTERNAL AUTHENTICATE
+   * @throws IOException communication error
+   */
+  public void openSecureChannel(boolean autoUpgradeKeys) throws APDUException, IOException {
     SecureRandom random = new SecureRandom();
     byte[] hostChallenge = new byte[8];
     random.nextBytes(hostChallenge);
     initializeUpdate(hostChallenge).checkOK();
     externalAuthenticate(hostChallenge).checkOK();
+
+    if (this.session.usesFallbackKeys() && autoUpgradeKeys) {
+      this.putSCP02Keys(this.cardKeys.getEncKeyData(), this.cardKeys.getMacKeyData(), this.cardKeys.getDekKeyData(), 0, 1).checkOK();
+    }
+  }
+
+  /**
+   * Sends a PUT KEY APDU to load or replace SCP02 keys. The key is used for all 3 of ENC, MAC and DEK.
+   *
+   * @param key the key to load
+   * @param oldKvn the KVN to replace, 0 to put a new key without replacing
+   * @param newKvn the KVN of the new keyset
+   * @return
+   * @throws IOException
+   */
+  public APDUResponse putSCP02Keys(byte[] key, int oldKvn, int newKvn) throws IOException {
+    return putSCP02Keys(key, key, key, oldKvn, newKvn);
   }
 
   /**
