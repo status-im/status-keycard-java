@@ -13,6 +13,9 @@ public class Identifiers {
   public static final byte[] NDEF_AID = Hex.decode("A000000804000102");
   public static final byte[] NDEF_INSTANCE_AID = Hex.decode("D2760000850101");
 
+  public static final byte[] CASH_AID = Hex.decode("A000000804000103");
+  public static final byte[] CASH_INSTANCE_AID = Hex.decode("A00000080400010301");
+
   /**
    * Gets the instance AID of the default instance of the Keycard applet.
    *

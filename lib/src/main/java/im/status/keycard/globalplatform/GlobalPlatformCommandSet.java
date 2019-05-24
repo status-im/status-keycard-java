@@ -416,4 +416,14 @@ public class GlobalPlatformCommandSet {
   public APDUResponse installKeycardApplet() throws IOException {
     return installForInstall(Identifiers.PACKAGE_AID, Identifiers.KEYCARD_AID, Identifiers.getKeycardInstanceAID(), new byte[0]);
   }
+
+  /**
+   * Installs the Cash applet.
+   *
+   * @return the card response
+   * @throws IOException communication error.
+   */
+  public APDUResponse installCashApplet() throws IOException {
+    return installForInstall(Identifiers.PACKAGE_AID, Identifiers.CASH_AID, Identifiers.CASH_INSTANCE_AID, new byte[0]);
+  }
 }
