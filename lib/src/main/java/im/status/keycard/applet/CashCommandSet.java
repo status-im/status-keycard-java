@@ -7,7 +7,7 @@ import im.status.keycard.io.CardChannel;
 import java.io.IOException;
 
 /**
- *
+ * Command set for the Cash applet.
  */
 public class CashCommandSet {
   private final CardChannel apduChannel;
@@ -39,7 +39,7 @@ public class CashCommandSet {
    * @return the raw card response
    * @throws IOException communication error
    */
-  public APDUResponse sign(byte[] data, int p1) throws IOException {
+  public APDUResponse sign(byte[] data) throws IOException {
     APDUCommand sign = new APDUCommand(0x80, KeycardCommandSet.INS_SIGN, 0x00, 0x00, data);
     return apduChannel.send(sign);
   }
