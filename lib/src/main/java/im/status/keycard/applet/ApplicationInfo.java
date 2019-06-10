@@ -118,6 +118,14 @@ public class ApplicationInfo {
    * @return the string representation of the application version
    */
   public String getAppVersionString() {
+    return getAppVersionString(appVersion);
+  }
+
+  /**
+   * A formatted application version.
+   * @return the string representation of the application version
+   */
+  static String getAppVersionString(short appVersion) {
     return (appVersion >> 8) + "." + (appVersion & 0xff);
   }
 
@@ -148,18 +156,38 @@ public class ApplicationInfo {
     return capabilities;
   }
 
+  /**
+   * Returns true if the device supports the Secure Channel capability.
+   *
+   * @return true or false
+   */
   public boolean hasSecureChannelCapability() {
     return (capabilities & CAPABILITY_SECURE_CHANNEL) == CAPABILITY_SECURE_CHANNEL;
   }
 
+  /**
+   * Returns true if the device supports the Key Management capability.
+   *
+   * @return true or false
+   */
   public boolean hasKeyManagementCapability() {
     return (capabilities & CAPABILITY_KEY_MANAGEMENT) == CAPABILITY_KEY_MANAGEMENT;
   }
 
+  /**
+   * Returns true if the device supports the Credentials Management capability.
+   *
+   * @return true or false
+   */
   public boolean hasCredentialsManagementCapability() {
     return (capabilities & CAPABILITY_CREDENTIALS_MANAGEMENT) == CAPABILITY_CREDENTIALS_MANAGEMENT;
   }
 
+  /**
+   * Returns true if the device supports the NDEF capability.
+   *
+   * @return true or false
+   */
   public boolean hasNDEFCapability() {
     return (capabilities & CAPABILITY_NDEF) == CAPABILITY_NDEF;
   }
