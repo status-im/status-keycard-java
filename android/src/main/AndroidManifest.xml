@@ -4,6 +4,10 @@
 
     <uses-permission android:name="android.permission.NFC" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-feature android:name="android.hardware.nfc.hce" android:required="true" />
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+
+    <uses-feature android:name="android.hardware.nfc.hce" android:required="false" />
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false"/>
 
 </manifest>
