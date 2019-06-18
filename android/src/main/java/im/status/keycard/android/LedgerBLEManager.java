@@ -27,11 +27,11 @@ public class LedgerBLEManager {
     }
   }
 
-  public void startScan() {
-    bluetoothAdapter.startLeScan(new UUID[] { LedgerBLEChannel.LEDGER_UUID}, null);
+  public void startScan(BluetoothAdapter.LeScanCallback cb) {
+    bluetoothAdapter.startLeScan(new UUID[] { LedgerBLEChannel.LEDGER_UUID}, cb);
   }
 
-  public void stopScan() {
-    bluetoothAdapter.stopLeScan(null);
+  public void stopScan(BluetoothAdapter.LeScanCallback cb) {
+    bluetoothAdapter.stopLeScan(cb);
   }
 }

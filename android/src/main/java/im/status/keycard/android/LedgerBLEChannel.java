@@ -5,6 +5,7 @@ import android.content.Context;
 import im.status.keycard.io.APDUCommand;
 import im.status.keycard.io.APDUResponse;
 import im.status.keycard.io.CardChannel;
+import im.status.keycard.io.LedgerUtil;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -19,13 +20,14 @@ public class LedgerBLEChannel implements CardChannel {
   private BluetoothGattCharacteristic reqChar;
   private boolean connected;
   private int mtuSize;
+  private boolean int writeStatus = 0;
 
   public LedgerBLEChannel(Context context, BluetoothDevice device) {
     this.context = context;
     this.connected = false;
     this.mtuSize = 20;
 
-    this.bluetoothGatt = device.connectGatt(context, true, new BluetoothGattCallback() {
+    this.bluetoothGatt = device.connectGatt(context, false, new BluetoothGattCallback() {
       @Override
       public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
         connected = newState == BluetoothProfile.STATE_CONNECTED;
@@ -68,7 +70,17 @@ public class LedgerBLEChannel implements CardChannel {
 
   @Override
   public APDUResponse send(APDUCommand cmd) throws IOException {
-    return null;
+    return LedgerUtil.send(cmd, mtuSize, false, new LedgerUtil.Callback() {
+      @Override
+      public void write(byte[] chunk) throws IOException {
+
+      }
+
+      @Override
+      public void read(byte[] chunk) throws IOException {
+
+      }
+    });
   }
 
   @Override
