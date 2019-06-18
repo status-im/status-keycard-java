@@ -20,7 +20,6 @@ public class LedgerBLEChannel implements CardChannel {
   private BluetoothGattCharacteristic reqChar;
   private boolean connected;
   private int mtuSize;
-  private boolean int writeStatus = 0;
 
   public LedgerBLEChannel(Context context, BluetoothDevice device) {
     this.context = context;
