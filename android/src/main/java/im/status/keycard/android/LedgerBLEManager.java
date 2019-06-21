@@ -1,10 +1,12 @@
 package im.status.keycard.android;
 
 import android.app.Activity;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothManager;
+import android.bluetooth.*;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import im.status.keycard.io.CardListener;
 
 import java.util.UUID;
 
@@ -13,6 +15,8 @@ public class LedgerBLEManager {
 
   final private BluetoothAdapter bluetoothAdapter;
   final private Activity activity;
+  private CardListener cardListener;
+
 
   public LedgerBLEManager(Activity context) {
     this.activity = context;
@@ -20,7 +24,7 @@ public class LedgerBLEManager {
     this.bluetoothAdapter = bluetoothManager.getAdapter();
   }
 
-  public void ensureBLEEnable() {
+  public void ensureBLEEnabled() {
     if (!bluetoothAdapter.isEnabled()) {
       Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
       activity.startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
@@ -33,5 +37,50 @@ public class LedgerBLEManager {
 
   public void stopScan(BluetoothAdapter.LeScanCallback cb) {
     bluetoothAdapter.stopLeScan(cb);
+  }
+
+  public void connectDevice(BluetoothDevice device) {
+    if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
+      final IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+      activity.registerReceiver(new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+          final BluetoothDevice d = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+          final int bondState = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, -1);
+
+          if (!d.getAddress().equals(device.getAddress())) {
+            return;
+          }
+
+          if (bondState == BluetoothDevice.BOND_BONDED) {
+            activity.unregisterReceiver(this);
+            // connect/disconnect to make bond permanent
+            device.connectGatt(activity, false, new BluetoothGattCallback() {
+              @Override
+              public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+                if (newState == BluetoothGatt.STATE_CONNECTED) {
+                  gatt.disconnect();
+                  onConnected(device);
+                }
+              }
+            });
+          }
+        }
+      }, filter);
+
+      device.createBond();
+    } else {
+      onConnected(device);
+    }
+  }
+
+  private void onConnected(BluetoothDevice device) {
+    if (cardListener != null) {
+      new LedgerBLEChannel(activity, device, cardListener);
+    }
+  }
+
+  public void setCardListener(CardListener cardListener) {
+    this.cardListener = cardListener;
   }
 }

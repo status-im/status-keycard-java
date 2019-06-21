@@ -2,10 +2,7 @@ package im.status.keycard.android;
 
 import android.bluetooth.*;
 import android.content.Context;
-import im.status.keycard.io.APDUCommand;
-import im.status.keycard.io.APDUResponse;
-import im.status.keycard.io.CardChannel;
-import im.status.keycard.io.LedgerUtil;
+import im.status.keycard.io.*;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -31,19 +28,31 @@ public class LedgerBLEChannel implements CardChannel {
   private int writeStatus;
   private LinkedBlockingQueue<byte[]> readQueue;
 
-  public LedgerBLEChannel(Context context, BluetoothDevice device) {
+  public LedgerBLEChannel(Context context, BluetoothDevice device, CardListener listener) {
     this.connected = false;
     this.mtuSize = 20;
     this.readQueue = new LinkedBlockingQueue<>();
     this.writeStatus = BLE_WRITE_FINISHED;
+    final CardChannel channel = this;
 
     this.bluetoothGatt = device.connectGatt(context, false, new BluetoothGattCallback() {
       @Override
       public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+        if (connected  == (newState ==  BluetoothProfile.STATE_CONNECTED)) {
+          return;
+        }
+
         connected = newState == BluetoothProfile.STATE_CONNECTED;
 
         if (connected) {
           bluetoothGatt.discoverServices();
+        } else {
+          (new Thread() {
+            @Override
+            public void run() {
+              listener.onDisconnected();
+            }
+          }).start();
         }
       }
 
@@ -60,8 +69,10 @@ public class LedgerBLEChannel implements CardChannel {
         reqChar = service.getCharacteristic(LEDGER_REQ_UUID);
         BluetoothGattCharacteristic rsp = service.getCharacteristic(LEDGER_RSP_UUID);
         bluetoothGatt.setCharacteristicNotification(rsp, true);
-        reqChar.setValue(new byte[] { 0x08, 0x00, 0x00, 0x00, 0x00});
-        bluetoothGatt.writeCharacteristic(reqChar);
+
+        BluetoothGattDescriptor rspDesc = rsp.getDescriptors().get(0);
+        rspDesc.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+        gatt.writeDescriptor(rspDesc);
       }
 
       @Override
@@ -70,11 +81,23 @@ public class LedgerBLEChannel implements CardChannel {
       }
 
       @Override
+      public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+        reqChar.setValue(new byte[] { 0x08, 0x00, 0x00, 0x00, 0x00});
+        bluetoothGatt.writeCharacteristic(reqChar);
+      }
+
+      @Override
       public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
         byte[] rsp = characteristic.getValue();
 
         if (rsp[0] == 0x08) {
           mtuSize = rsp[5];
+          (new Thread() {
+            @Override
+            public void run() {
+              listener.onConnected(channel);
+            }
+          }).start();
           return;
         }
 
@@ -111,6 +134,11 @@ public class LedgerBLEChannel implements CardChannel {
       public void read(byte[] chunk) throws IOException {
         try {
           byte[] data = readQueue.poll(BLE_TIMEOUT, TimeUnit.MILLISECONDS);
+
+          if (data == null) {
+            throw new IOException("read timeout");
+          }
+
           System.arraycopy(data, 0, chunk, 0, Math.min(data.length, chunk.length));
         } catch (InterruptedException e) {
           throw new IOException("read timeout");
