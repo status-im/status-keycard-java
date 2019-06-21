@@ -82,7 +82,7 @@ public class LedgerBLEChannel implements CardChannel {
 
       @Override
       public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
-        reqChar.setValue(new byte[] { 0x08, 0x00, 0x00, 0x00, 0x00});
+        reqChar.setValue(new byte[] {0x08, 0x00, 0x00, 0x00, 0x00});
         bluetoothGatt.writeCharacteristic(reqChar);
       }
 

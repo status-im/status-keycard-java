@@ -1,9 +1,12 @@
 package im.status.keycard.app;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.nfc.NfcAdapter;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import im.status.keycard.android.LedgerBLEManager;
 import im.status.keycard.demo.R;
 import im.status.keycard.io.CardChannel;
 import im.status.keycard.io.CardListener;
@@ -17,6 +20,8 @@ public class MainActivity extends AppCompatActivity {
 
   private NfcAdapter nfcAdapter;
   private NFCCardManager cardManager;
+  //private LedgerBLEManager cardManager;
+  //private boolean connected;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -24,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
     setContentView(R.layout.activity_main);
     nfcAdapter = NfcAdapter.getDefaultAdapter(this);
     cardManager = new NFCCardManager();
-
+    //cardManager = new LedgerBLEManager(this);
     cardManager.setCardListener(new CardListener() {
       @Override
       public void onConnected(CardChannel cardChannel) {
@@ -159,6 +164,19 @@ public class MainActivity extends AppCompatActivity {
       }
     });
     cardManager.start();
+    /*connected = false;
+    cardManager.startScan(new BluetoothAdapter.LeScanCallback() {
+      @Override
+      public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+        if (connected) {
+          return;
+        }
+
+        connected = true;
+        cardManager.stopScan(this);
+        cardManager.connectDevice(device);
+      }
+    });*/
   }
 
   @Override

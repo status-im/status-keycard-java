@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import im.status.keycard.globalplatform.Crypto;
 import im.status.keycard.io.CardListener;
 
 import java.util.UUID;
@@ -17,6 +18,9 @@ public class LedgerBLEManager {
   final private Activity activity;
   private CardListener cardListener;
 
+  static {
+    Crypto.addBouncyCastleProvider();
+  }
 
   public LedgerBLEManager(Activity context) {
     this.activity = context;

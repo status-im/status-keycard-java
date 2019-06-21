@@ -54,7 +54,10 @@ public class LedgerUtil {
 
     ByteArrayOutputStream response = new ByteArrayOutputStream();
 
-    int blockSize = (responseLength > segmentSize - 7 ? segmentSize - 7 : responseLength);
+    int headerSize = channelInfo ? 5 : 3;
+    int initialHeaderSize = headerSize + 2;
+
+    int blockSize = (responseLength > segmentSize - initialHeaderSize ? segmentSize - initialHeaderSize : responseLength);
     response.write(data, offset, blockSize);
     offset += blockSize;
 
@@ -67,7 +70,7 @@ public class LedgerUtil {
 
       offset = checkResponseHeader(data, offset, sequenceIdx, channelInfo);
 
-      blockSize = (responseLength - response.size() > segmentSize - 5 ? segmentSize - 5 : responseLength - response.size());
+      blockSize = (responseLength - response.size() > segmentSize - headerSize ? segmentSize - headerSize : responseLength - response.size());
       if (blockSize > data.length - offset) {
         return null;
       }
@@ -106,6 +109,9 @@ public class LedgerUtil {
   private static byte[] wrapCommandAPDU(byte[] command, int segmentSize, boolean channelInfo) {
     ByteArrayOutputStream output = new ByteArrayOutputStream();
 
+    int headerSize = channelInfo ? 5 : 3;
+    int initialHeaderSize = headerSize + 2;
+
     int sequenceIdx = 0;
     int offset = 0;
     writeCommandHeader(output, sequenceIdx, channelInfo);
@@ -113,7 +119,7 @@ public class LedgerUtil {
 
     output.write(command.length >> 8);
     output.write(command.length);
-    int blockSize = (command.length > (segmentSize - 7) ? (segmentSize - 7) : command.length);
+    int blockSize = (command.length > (segmentSize - initialHeaderSize) ? (segmentSize - initialHeaderSize) : command.length);
     output.write(command, offset, blockSize);
     offset += blockSize;
 
@@ -121,7 +127,7 @@ public class LedgerUtil {
       writeCommandHeader(output, sequenceIdx, channelInfo);
       sequenceIdx++;
 
-      blockSize = ((command.length - offset) > (segmentSize - 5) ? (segmentSize - 5) : (command.length - offset));
+      blockSize = ((command.length - offset) > (segmentSize - headerSize) ? (segmentSize - headerSize) : (command.length - offset));
       output.write(command, offset, blockSize);
       offset += blockSize;
     }
