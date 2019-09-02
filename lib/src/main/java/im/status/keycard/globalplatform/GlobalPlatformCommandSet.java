@@ -231,6 +231,16 @@ public class GlobalPlatformCommandSet {
   }
 
   /**
+   * Deletes the Keycard Cash applet instance.
+   *
+   * @return the card response
+   * @throws IOException communication error
+   */
+  public APDUResponse deleteCashInstance() throws IOException {
+    return delete(Identifiers.CASH_INSTANCE_AID);
+  }
+
+  /**
    * Deletes the NDEF applet instance.
    *
    * @return the card response
@@ -260,6 +270,7 @@ public class GlobalPlatformCommandSet {
   public void deleteKeycardInstancesAndPackage() throws IOException, APDUException {
     deleteNDEFInstance().checkSW(APDUResponse.SW_OK, APDUResponse.SW_REFERENCED_DATA_NOT_FOUND);
     deleteKeycardInstance().checkSW(APDUResponse.SW_OK, APDUResponse.SW_REFERENCED_DATA_NOT_FOUND);
+    deleteCashInstance().checkSW(APDUResponse.SW_OK, APDUResponse.SW_REFERENCED_DATA_NOT_FOUND);
     deleteKeycardPackage().checkSW(APDUResponse.SW_OK, APDUResponse.SW_REFERENCED_DATA_NOT_FOUND);
   }
 
