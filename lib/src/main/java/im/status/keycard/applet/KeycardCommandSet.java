@@ -32,6 +32,8 @@ public class KeycardCommandSet {
   static final byte INS_SIGN = (byte) 0xC0;
   static final byte INS_SET_PINLESS_PATH = (byte) 0xC1;
   static final byte INS_EXPORT_KEY = (byte) 0xC2;
+  static final byte INS_GET_DATA = (byte) 0xCA;
+  static final byte INS_STORE_DATA = (byte) 0xE2;
 
   public static final byte CHANGE_PIN_P1_USER_PIN = 0x00;
   public static final byte CHANGE_PIN_P1_PUK = 0x01;
@@ -578,7 +580,6 @@ public class KeycardCommandSet {
     return sign(hash, SIGN_P1_PINLESS);
   }
 
-
   /**
    * Sends a SIGN APDU. This signs a precomputed hash so the input must be exactly 32-bytes long, eventually followed by
    * a derivation path.
@@ -721,6 +722,29 @@ public class KeycardCommandSet {
     byte p2 = publicOnly ? EXPORT_KEY_P2_PUBLIC_ONLY : EXPORT_KEY_P2_PRIVATE_AND_PUBLIC;
     APDUCommand exportKey = secureChannel.protectedCommand(0x80, INS_EXPORT_KEY, derivationOptions, p2, keypath);
     return secureChannel.transmit(apduChannel, exportKey);
+  }
+
+  /**
+   * Sends a GET DATA APDU.
+   *
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse getPublicData() throws IOException {
+    APDUCommand getData = secureChannel.protectedCommand(0x80, INS_GET_DATA, 0, 0, new byte[0]);
+    return secureChannel.transmit(apduChannel, getData);
+  }
+
+  /**
+   * Sends a STORE DATA APDU.
+   *
+   * @param data the data field of the APDU
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse storePublicData(byte[] data) throws IOException {
+    APDUCommand storeData = secureChannel.protectedCommand(0x80, INS_STORE_DATA, 0, 0, data);
+    return secureChannel.transmit(apduChannel, storeData);
   }
 
   /**

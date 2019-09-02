@@ -105,6 +105,15 @@ public class RecoverableSignature {
     return s;
   }
 
+  /**
+   * The Ethereum address of the signing key
+   *
+   * @return ethereum address of the signing key
+   */
+  public byte[] getEthereumAddress() {
+    return Ethereum.toEthereumAddress(publicKey);
+  }
+
   private static byte[] recoverFromSignature(int recId, BigInteger e, BigInteger r, BigInteger s) {
     BigInteger n = CURVE.getN();
     BigInteger i = BigInteger.valueOf((long) recId / 2);

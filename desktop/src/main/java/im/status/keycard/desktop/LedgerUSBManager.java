@@ -11,7 +11,8 @@ public class LedgerUSBManager implements HidServicesListener {
   }
 
   private static final int VID = 0x2c97;
-  private static final int PID = 0x0001;
+  private static final int[] PIDS = { 0x0001, 0x0004 };
+
   private static final int SCAN_INTERVAL_MS = 500;
   private static final int PAUSE_INTERVAL_MS = 5000;
 
@@ -34,10 +35,13 @@ public class LedgerUSBManager implements HidServicesListener {
   public void start() {
     hidServices.start();
 
-    HidDevice hidDevice = hidServices.getHidDevice(VID, PID, null);
+    for (int pid : PIDS) {
+      HidDevice hidDevice = hidServices.getHidDevice(VID, pid, null);
 
-    if (hidDevice != null) {
-      listener.onConnected(new LedgerUSBChannel(hidDevice));
+      if (hidDevice != null) {
+        listener.onConnected(new LedgerUSBChannel(hidDevice));
+        break;
+      }
     }
   }
 
@@ -49,7 +53,7 @@ public class LedgerUSBManager implements HidServicesListener {
   public void hidDeviceAttached(HidServicesEvent event) {
     HidDevice hidDevice = event.getHidDevice();
 
-    if (hidDevice.isVidPidSerial(VID, PID, null)) {
+    if (isLedger(hidDevice)) {
       listener.onConnected(new LedgerUSBChannel(hidDevice));
     }
 
@@ -62,10 +66,18 @@ public class LedgerUSBManager implements HidServicesListener {
 
   @Override
   public void hidFailure(HidServicesEvent event) {
-    HidDevice hidDevice = event.getHidDevice();
-
-    if (hidDevice.isVidPidSerial(VID, PID, null)) {
+    if (isLedger(event.getHidDevice())) {
       listener.onDisconnected();
     }
+  }
+
+  private boolean isLedger(HidDevice hidDevice) {
+    for (int pid : PIDS) {
+      if (hidDevice.isVidPidSerial(VID, pid, null)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }

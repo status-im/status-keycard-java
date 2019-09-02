@@ -171,12 +171,13 @@ public class BIP32KeyPair {
     return data;
   }
 
+  /**
+   * Returns the public key as an Ethereum address.
+   *
+   * @return the Ethereum address
+   */
   public byte[] toEthereumAddress() {
-    KeccakDigest digest = new KeccakDigest(256);
-    digest.update(publicKey, 1, (publicKey.length - 1));
-    byte[] hash = new byte[32];
-    digest.doFinal(hash, 0);
-    return Arrays.copyOfRange(hash,12, hash.length);
+    return Ethereum.toEthereumAddress(publicKey);
   }
 
   /**
