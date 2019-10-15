@@ -28,7 +28,6 @@ public class KeycardCommandSet {
   static final byte INS_GENERATE_MNEMONIC = (byte) 0xD2;
   static final byte INS_REMOVE_KEY = (byte) 0xD3;
   static final byte INS_GENERATE_KEY = (byte) 0xD4;
-  static final byte INS_DUPLICATE_KEY = (byte) 0xD5;
   static final byte INS_SIGN = (byte) 0xC0;
   static final byte INS_SET_PINLESS_PATH = (byte) 0xC1;
   static final byte INS_EXPORT_KEY = (byte) 0xC2;
@@ -486,57 +485,6 @@ public class KeycardCommandSet {
   public APDUResponse generateKey() throws IOException {
     APDUCommand generateKey = secureChannel.protectedCommand(0x80, INS_GENERATE_KEY, 0, 0, new byte[0]);
     return secureChannel.transmit(apduChannel, generateKey);
-  }
-
-  /**
-   * Sends a DUPLICATE KEY APDU. The P1 is set to 00, P2 to the entropy count and the data is the first entropy piece.
-   * This starts a duplication session. Requires an open Secure Channel and authenticated PIN.
-   *
-   * @param entropyCount the number of entropy pieces to expect, including the one in this APDU
-   * @param firstEntropy a random 32-byte number
-   * @return the raw card response
-   * @throws IOException communication error
-   */
-  public APDUResponse duplicateKeyStart(int entropyCount, byte[] firstEntropy) throws IOException {
-    APDUCommand duplicateKeyStart = secureChannel.protectedCommand(0x80, INS_DUPLICATE_KEY, DUPLICATE_KEY_P1_START, entropyCount, firstEntropy);
-    return secureChannel.transmit(apduChannel, duplicateKeyStart);
-  }
-
-  /**
-   * Sends a DUPLICATE KEY APDU. The P1 is set to 01 and the data is the entropy. This adds entropy and does not require
-   * a Secure Channel or authenticated PIN.
-   *
-   * @param entropy a random 32-byte number
-   * @return the raw card response
-   * @throws IOException communication error
-   */
-  public APDUResponse duplicateKeyAddEntropy(byte[] entropy) throws IOException {
-    APDUCommand duplicateKeyAddEntropy = new APDUCommand(0x80, INS_DUPLICATE_KEY, DUPLICATE_KEY_P1_ADD_ENTROPY, 0, secureChannel.oneShotEncrypt(entropy));
-    return apduChannel.send(duplicateKeyAddEntropy);
-  }
-
-  /**
-   * Sends a DUPLICATE KEY APDU. The P1 is set to 02. This exports the encrypted master key including chaining code.
-   *
-   * @return the raw card response
-   * @throws IOException communication error
-   */
-  public APDUResponse duplicateKeyExport() throws IOException {
-    APDUCommand duplicateKeyExport = secureChannel.protectedCommand(0x80, INS_DUPLICATE_KEY, DUPLICATE_KEY_P1_EXPORT, 0, new byte[0]);
-    return secureChannel.transmit(apduChannel, duplicateKeyExport);
-  }
-
-  /**
-   * Sends a DUPLICATE KEY APDU. The P1 is set to 03. This imports an encrypted master key including chaining code. The
-   * response data contains the key UID of the imported key.
-   *
-   * @param key the key, exported from another card in the same duplication session.
-   * @return the raw card response
-   * @throws IOException communication error
-   */
-  public APDUResponse duplicateKeyImport(byte[] key) throws IOException {
-    APDUCommand duplicateKeyImport = secureChannel.protectedCommand(0x80, INS_DUPLICATE_KEY, DUPLICATE_KEY_P1_IMPORT, 0, key);
-    return secureChannel.transmit(apduChannel, duplicateKeyImport);
   }
 
   /**
