@@ -431,10 +431,21 @@ public class GlobalPlatformCommandSet {
   /**
    * Installs the Cash applet.
    *
+   * @param cashData the initial Cash data. Can be a zero-length array but not null
+   * @return the card response
+   * @throws IOException communication error.
+   */
+  public APDUResponse installCashApplet(byte[] cashData) throws IOException {
+    return installForInstall(Identifiers.PACKAGE_AID, Identifiers.CASH_AID, Identifiers.CASH_INSTANCE_AID, cashData);
+  }
+
+  /**
+   * Installs the Cash applet.
+   *
    * @return the card response
    * @throws IOException communication error.
    */
   public APDUResponse installCashApplet() throws IOException {
-    return installForInstall(Identifiers.PACKAGE_AID, Identifiers.CASH_AID, Identifiers.CASH_INSTANCE_AID, new byte[0]);
+    return installCashApplet(new byte[0]);
   }
 }
