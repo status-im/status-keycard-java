@@ -56,7 +56,7 @@ public class CashApplicationInfo {
    *
    * @return the public key
    */
-  public byte[] getPubDate() {
+  public byte[] getPubData() {
     return pubData;
   }
 }
