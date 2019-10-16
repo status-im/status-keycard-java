@@ -19,7 +19,6 @@ import java.util.Arrays;
 public class KeycardCommandSet {
   static final byte INS_INIT = (byte) 0xFE;
   static final byte INS_GET_STATUS = (byte) 0xF2;
-  static final byte INS_SET_NDEF = (byte) 0xF3;
   static final byte INS_VERIFY_PIN = (byte) 0x20;
   static final byte INS_CHANGE_PIN = (byte) 0x21;
   static final byte INS_UNBLOCK_PIN = (byte) 0x22;
@@ -58,6 +57,10 @@ public class KeycardCommandSet {
   static final byte SIGN_P1_DERIVE = 0x01;
   static final byte SIGN_P1_DERIVE_AND_MAKE_CURRENT = 0x02;
   static final byte SIGN_P1_PINLESS = 0x03;
+
+  public static final byte STORE_DATA_P1_PUBLIC = 0x00;
+  public static final byte STORE_DATA_P1_NDEF = 0x01;
+  public static final byte STORE_DATA_P1_CASH = 0x02;
 
   public static final int GENERATE_MNEMONIC_12_WORDS = 0x04;
   public static final int GENERATE_MNEMONIC_15_WORDS = 0x05;
@@ -268,19 +271,7 @@ public class KeycardCommandSet {
     return secureChannel.transmit(apduChannel, getStatus);
   }
 
-  /**
-   * Sends a SET NDEF APDU.
-   *
-   * @param ndef the data field of the APDU
-   * @return the raw card response
-   * @throws IOException communication error
-   */
-  public APDUResponse setNDEF(byte[] ndef) throws IOException {
-    APDUCommand setNDEF = secureChannel.protectedCommand(0x80, INS_SET_NDEF, 0, 0, ndef);
-    return secureChannel.transmit(apduChannel, setNDEF);
-  }
-
-  /**
+   /**
    * Sends a VERIFY PIN APDU. The raw bytes of the given string are encrypted using the secure channel and used as APDU
    * data.
    *
@@ -675,23 +666,44 @@ public class KeycardCommandSet {
   /**
    * Sends a GET DATA APDU.
    *
+   * @param dataType the type of data to be stored
    * @return the raw card response
    * @throws IOException communication error
    */
-  public APDUResponse getPublicData() throws IOException {
-    APDUCommand getData = secureChannel.protectedCommand(0x80, INS_GET_DATA, 0, 0, new byte[0]);
+  public APDUResponse getData(byte dataType) throws IOException {
+    APDUCommand getData = secureChannel.protectedCommand(0x80, INS_GET_DATA, dataType, 0, new byte[0]);
     return secureChannel.transmit(apduChannel, getData);
   }
 
   /**
-   * Sends a STORE DATA APDU.
+   * Sends a STORE DATA APDU for NDEF.
    *
-   * @param data the data field of the APDU
+   * @param ndef the data field of the APDU
    * @return the raw card response
    * @throws IOException communication error
    */
-  public APDUResponse storePublicData(byte[] data) throws IOException {
-    APDUCommand storeData = secureChannel.protectedCommand(0x80, INS_STORE_DATA, 0, 0, data);
+  public APDUResponse setNDEF(byte[] ndef) throws IOException {
+    if ((ndef.length - 2) != ((ndef[0] << 8) | ndef[1])) {
+      byte[] tmp = new byte[ndef.length + 2];
+      tmp[0] = (byte) (ndef.length >> 8);
+      tmp[1] = (byte) (ndef.length & 0xff);
+      System.arraycopy(ndef, 0, tmp, 2, ndef.length);
+      ndef = tmp;
+    }
+
+    return storeData(ndef, STORE_DATA_P1_NDEF);
+  }
+
+   /**
+   * Sends a STORE DATA APDU.
+   *
+   * @param data the data field of the APDU
+   * @param dataType the type of data to be stored
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse storeData(byte[] data, byte dataType) throws IOException {
+    APDUCommand storeData = secureChannel.protectedCommand(0x80, INS_STORE_DATA, dataType, 0, data);
     return secureChannel.transmit(apduChannel, storeData);
   }
 
