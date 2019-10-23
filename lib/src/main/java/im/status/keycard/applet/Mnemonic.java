@@ -41,28 +41,11 @@ public class Mnemonic {
   }
 
   /**
-   * Retrieves the official BIP39 english wordlist from GitHub.
+   * Returns the official BIP39 english wordlist as fetched from https://raw.githubusercontent.com/bitcoin/bips/master/bip-0039/english.txt on 23 Oct 2019.
    *
-   * @throws IOException network error
    */
-  public void fetchBIP39EnglishWordlist() throws IOException {
-    URL remoteList = new URL("https://raw.githubusercontent.com/bitcoin/bips/master/bip-0039/english.txt");
-    Scanner scanner = new Scanner(remoteList.openStream());
-
-    ArrayList<String> list = new ArrayList<>();
-
-    while(scanner.hasNextLine()) {
-      list.add(scanner.nextLine());
-    }
-
-    scanner.close();
-
-    if (list.size() != WORDLIST_SIZE) {
-      throw new IllegalArgumentException("The list must contain exactly 2048 entries");
-    }
-
-    this.wordlist = new String[WORDLIST_SIZE];
-    list.toArray(this.wordlist);
+  public void fetchBIP39EnglishWordlist() {
+    this.wordlist = MnemonicEnglishDictionary.words;
   }
 
   /**
