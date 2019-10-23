@@ -19,6 +19,7 @@ import java.util.Arrays;
 public class KeycardCommandSet {
   static final byte INS_INIT = (byte) 0xFE;
   static final byte INS_GET_STATUS = (byte) 0xF2;
+  static final byte INS_SET_NDEF = (byte) 0xF3;
   static final byte INS_VERIFY_PIN = (byte) 0x20;
   static final byte INS_CHANGE_PIN = (byte) 0x21;
   static final byte INS_UNBLOCK_PIN = (byte) 0x22;
@@ -683,15 +684,20 @@ public class KeycardCommandSet {
    * @throws IOException communication error
    */
   public APDUResponse setNDEF(byte[] ndef) throws IOException {
-    if ((ndef.length - 2) != ((ndef[0] << 8) | ndef[1])) {
-      byte[] tmp = new byte[ndef.length + 2];
-      tmp[0] = (byte) (ndef.length >> 8);
-      tmp[1] = (byte) (ndef.length & 0xff);
-      System.arraycopy(ndef, 0, tmp, 2, ndef.length);
-      ndef = tmp;
-    }
+    if ((info.getAppVersion() >> 8) > 2) {
+      if ((ndef.length - 2) != ((ndef[0] << 8) | ndef[1])) {
+        byte[] tmp = new byte[ndef.length + 2];
+        tmp[0] = (byte) (ndef.length >> 8);
+        tmp[1] = (byte) (ndef.length & 0xff);
+        System.arraycopy(ndef, 0, tmp, 2, ndef.length);
+        ndef = tmp;
+      }
 
-    return storeData(ndef, STORE_DATA_P1_NDEF);
+      return storeData(ndef, STORE_DATA_P1_NDEF);
+    } else {
+      APDUCommand setNDEF = secureChannel.protectedCommand(0x80, INS_SET_NDEF, 0, 0, ndef);
+      return secureChannel.transmit(apduChannel, setNDEF);
+    }
   }
 
    /**
