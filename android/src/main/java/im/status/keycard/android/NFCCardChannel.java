@@ -34,4 +34,8 @@ public class NFCCardChannel implements CardChannel {
   public boolean isConnected() {
     return this.isoDep.isConnected();
   }
+
+  public int pairingPasswordPBKDF2IterationCount() {
+    return 50000;
+  }
 }

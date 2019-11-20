@@ -29,7 +29,5 @@ public interface CardChannel {
    *
    * @return the iteration count
    */
-  default int pairingPasswordPBKDF2IterationCount() {
-    return 50000;
-  }
+  int pairingPasswordPBKDF2IterationCount();
 }

@@ -47,4 +47,8 @@ public class PCSCCardChannel implements CardChannel {
   public boolean isConnected() {
     return true;
   }
+
+  public int pairingPasswordPBKDF2IterationCount() {
+    return 50000;
+  }
 }
