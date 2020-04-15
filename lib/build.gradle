@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'maven'
 
 dependencies {
-    implementation 'org.bouncycastle:bcprov-jdk15on:1.60'
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.65'
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {

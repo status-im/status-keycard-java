@@ -61,7 +61,7 @@ public class Crypto {
     } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException e) {
       throw new RuntimeException("error generating session keys.", e);
     } catch (NoSuchProviderException e) {
-      throw new RuntimeException("SpongyCastle not installed");
+      throw new RuntimeException("BouncyCastle not installed");
     }
   }
 
