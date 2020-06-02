@@ -118,24 +118,14 @@ public class SecureChannelSession {
    * @param apduChannel the apdu channel
    * @throws IOException communication error
    */
-  public void autoOpenSecureChannel(CardChannel apduChannel) throws IOException {
+  public void autoOpenSecureChannel(CardChannel apduChannel) throws IOException, APDUException {
     APDUResponse response = openSecureChannel(apduChannel, pairing.getPairingIndex(), publicKey);
-
-    if (response.getSw() != 0x9000) {
-      throw new IOException("OPEN SECURE CHANNEL failed");
-    }
 
     processOpenSecureChannelResponse(response);
 
     response = mutuallyAuthenticate(apduChannel);
-
-    if (response.getSw() != 0x9000) {
-      throw new IOException("MUTUALLY AUTHENTICATE failed");
-    }
-
-    if(!verifyMutuallyAuthenticateResponse(response)) {
-      throw new IOException("Invalid authentication data from the card");
-    }
+    response.checkOK("MUTUALLY AUTHENTICATE failed");
+    verifyMutuallyAuthenticateResponse(response);
   }
 
   /**
@@ -168,8 +158,10 @@ public class SecureChannelSession {
    * @param response the card response
    * @return true if response is correct, false otherwise
    */
-  public boolean verifyMutuallyAuthenticateResponse(APDUResponse response) {
-    return response.getData().length == SC_SECRET_LENGTH;
+  public void verifyMutuallyAuthenticateResponse(APDUResponse response) throws APDUException {
+    if (response.getData().length != SC_SECRET_LENGTH) {
+      throw new APDUException("Invalid authentication data from the card");
+    }
   }
 
   /**
@@ -178,14 +170,10 @@ public class SecureChannelSession {
    * @param apduChannel the apdu channel
    * @throws IOException communication error
    */
-  public void autoPair(CardChannel apduChannel, byte[] sharedSecret) throws IOException {
+  public void autoPair(CardChannel apduChannel, byte[] sharedSecret) throws IOException, APDUException {
     byte[] challenge = new byte[32];
     random.nextBytes(challenge);
-    APDUResponse resp = pair(apduChannel, PAIR_P1_FIRST_STEP, challenge);
-
-    if (resp.getSw() != 0x9000) {
-      throw new IOException("Pairing failed on step 1");
-    }
+    APDUResponse resp = pair(apduChannel, PAIR_P1_FIRST_STEP, challenge).checkOK("Pairing failed on step 1");
 
     byte[] respData = resp.getData();
     byte[] cardCryptogram = Arrays.copyOf(respData, 32);
@@ -204,18 +192,13 @@ public class SecureChannelSession {
     checkCryptogram = md.digest(challenge);
 
     if (!Arrays.equals(checkCryptogram, cardCryptogram)) {
-      throw new IOException("Invalid card cryptogram");
+      throw new APDUException("Invalid card cryptogram");
     }
 
     md.update(sharedSecret);
     checkCryptogram = md.digest(cardChallenge);
 
-    resp = pair(apduChannel, PAIR_P1_LAST_STEP, checkCryptogram);
-
-    if (resp.getSw() != 0x9000) {
-      throw new IOException("Pairing failed on step 2");
-    }
-
+    resp = pair(apduChannel, PAIR_P1_LAST_STEP, checkCryptogram).checkOK("Pairing failed on step 2");
     respData = resp.getData();
     md.update(sharedSecret);
     pairing = new Pairing(md.digest(Arrays.copyOfRange(respData, 1, respData.length)), respData[0]);
@@ -227,12 +210,8 @@ public class SecureChannelSession {
    * @param apduChannel the apdu channel
    * @throws IOException communication error
    */
-  public void autoUnpair(CardChannel apduChannel) throws IOException {
-    APDUResponse resp = unpair(apduChannel, pairing.getPairingIndex());
-
-    if (resp.getSw() != 0x9000) {
-      throw new IOException("Unpairing failed");
-    }
+  public void autoUnpair(CardChannel apduChannel) throws IOException, APDUException {
+    unpair(apduChannel, pairing.getPairingIndex()).checkOK("Unpairing failed");
   }
 
   /**

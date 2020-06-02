@@ -164,8 +164,9 @@ public class KeycardCommandSet {
    * Opens the secure channel. Calls the corresponding method of the SecureChannel class.
    *
    * @throws IOException communication error
+   * @throws APDUException secure channel error
    */
-  public void autoOpenSecureChannel() throws IOException {
+  public void autoOpenSecureChannel() throws IOException, APDUException {
     secureChannel.autoOpenSecureChannel(apduChannel);
   }
 
@@ -173,8 +174,9 @@ public class KeycardCommandSet {
    * Automatically pairs. Derives the secret from the given password.
    *
    * @throws IOException communication error
+   * @throws APDUException pairing error
    */
-  public void autoPair(String pairingPassword) throws IOException {
+  public void autoPair(String pairingPassword) throws IOException, APDUException {
     byte[] secret = pairingPasswordToSecret(pairingPassword);
 
     secureChannel.autoPair(apduChannel, secret);
@@ -203,8 +205,9 @@ public class KeycardCommandSet {
    * Automatically pairs. Calls the corresponding method of the SecureChannel class.
    *
    * @throws IOException communication error
+   * @throws APDUException pairing error
    */
-  public void autoPair(byte[] sharedSecret) throws IOException {
+  public void autoPair(byte[] sharedSecret) throws IOException, APDUException {
     secureChannel.autoPair(apduChannel, sharedSecret);
   }
 
@@ -212,8 +215,9 @@ public class KeycardCommandSet {
    * Automatically unpairs. Calls the corresponding method of the SecureChannel class.
    *
    * @throws IOException communication error
+   * @throws APDUException unpairing error
    */
-  public void autoUnpair() throws IOException {
+  public void autoUnpair() throws IOException, APDUException {
     secureChannel.autoUnpair(apduChannel);
   }
 
@@ -254,6 +258,9 @@ public class KeycardCommandSet {
 
   /**
    * Unpair all other clients.
+   *
+   * @throws IOException communication error
+   * @throws APDUException unpairing error
    */
   public void unpairOthers() throws IOException, APDUException {
     secureChannel.unpairOthers(apduChannel);

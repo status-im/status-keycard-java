@@ -89,6 +89,35 @@ public class APDUResponse {
   }
 
   /**
+   * Asserts that the SW is 0x9000. Throws an exception with the given message if it isn't
+   *
+   * @param message the error message
+   * @return this object, to simplify chaining
+   * @throws APDUException if the SW is not 0x9000
+   */
+  public APDUResponse checkOK(String message) throws APDUException {
+    return checkSW(message, SW_OK);
+  }
+
+  /**
+   * Asserts that the SW is contained in the given list. Throws an exception with the given message if it isn't.
+   *
+   * @param message the error message
+   * @param codes the list of SWs to match.
+   * @return this object, to simplify chaining
+   * @throws APDUException if the SW is not 0x9000
+   */
+  public APDUResponse checkSW(String message, int... codes) throws APDUException {
+    for (int code : codes) {
+      if (this.sw == code) {
+        return this;
+      }
+    }
+
+    throw new APDUException(this.sw, message);
+  }
+
+  /**
    * Checks response from an authentication command (VERIFY PIN, UNBLOCK PUK)
    *
    * @throws WrongPINException wrong PIN
