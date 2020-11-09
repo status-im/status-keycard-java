@@ -120,7 +120,7 @@ public class SecureChannelSession {
    */
   public void autoOpenSecureChannel(CardChannel apduChannel) throws IOException, APDUException {
     APDUResponse response = openSecureChannel(apduChannel, pairing.getPairingIndex(), publicKey);
-
+    response.checkOK("OPEN SECURE CHANNEL failed");
     processOpenSecureChannelResponse(response);
 
     response = mutuallyAuthenticate(apduChannel);
