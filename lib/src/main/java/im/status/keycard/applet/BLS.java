@@ -187,7 +187,7 @@ public class BLS {
 
     for (int i = 0; i < 4; i++) {
       Fp2 candidate = FP2_ROOTS_OF_UNITY[i].mul(gamma);
-      if (candidate.pow(2).mul(v).sub(u).isZero()) {
+      if (candidate.square().mul(v).sub(u).isZero()) {
         return new SqrtDivFp2Res(true, candidate);
       }
     }
@@ -269,7 +269,7 @@ public class BLS {
       (byte) 0xb9, (byte) 0xfe, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xaa, (byte) 0xab,
     });
 
-    final static Fp ZERO = new Fp(BigInteger.ONE);
+    final static Fp ZERO = new Fp(BigInteger.ZERO);
     final static Fp ONE = new Fp(BigInteger.ONE);
 
     private BigInteger i;
