@@ -1,8 +1,11 @@
 *.iml
 .gradle
+.vscode
 /local.properties
 .idea
 .DS_Store
 /build
 /captures
+/desktop/bin
+lib/bin
 .externalNativeBuild

@@ -1,6 +1,5 @@
 package im.status.keycard.applet;
 
-import org.bouncycastle.crypto.digests.KeccakDigest;
 import org.bouncycastle.math.ec.ECPoint;
 
 import javax.crypto.Mac;
