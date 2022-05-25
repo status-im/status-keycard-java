@@ -251,7 +251,7 @@ public class BLS {
     PointG2 q0 = isogenyMapG2(mapToCurveSimpleSWU9mod16(new Fp2(u[0][0], u[0][1])));
     PointG2 q1 = isogenyMapG2(mapToCurveSimpleSWU9mod16(new Fp2(u[1][0], u[1][1])));
     PointG2 r = q0.add(q1).clearCofactor();
-    return r.toAffine().toByteArray();
+    return r.toByteArray();
   }
 
   public static void main(String[] args) {
@@ -260,17 +260,9 @@ public class BLS {
   }
 
   static class Fp {
-    final static BigInteger FP = new BigInteger(new byte[] {
-      (byte) 0x1a, (byte) 0x01, (byte) 0x11, (byte) 0xea, (byte) 0x39, (byte) 0x7f, (byte) 0xe6, (byte) 0x9a,
-      (byte) 0x4b, (byte) 0x1b, (byte) 0xa7, (byte) 0xb6, (byte) 0x43, (byte) 0x4b, (byte) 0xac, (byte) 0xd7,
-      (byte) 0x64, (byte) 0x77, (byte) 0x4b, (byte) 0x84, (byte) 0xf3, (byte) 0x85, (byte) 0x12, (byte) 0xbf,
-      (byte) 0x67, (byte) 0x30, (byte) 0xd2, (byte) 0xa0, (byte) 0xf6, (byte) 0xb0, (byte) 0xf6, (byte) 0x24,
-      (byte) 0x1e, (byte) 0xab, (byte) 0xff, (byte) 0xfe, (byte) 0xb1, (byte) 0x53, (byte) 0xff, (byte) 0xff,
-      (byte) 0xb9, (byte) 0xfe, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xaa, (byte) 0xab,
-    });
-
     final static Fp ZERO = new Fp(BigInteger.ZERO);
     final static Fp ONE = new Fp(BigInteger.ONE);
+    final static int SIZE = 48;
 
     private BigInteger i;
 
@@ -283,7 +275,7 @@ public class BLS {
     }
 
     Fp(BigInteger i) {
-      this.i = i.mod(FP);
+      this.i = i.mod(P);
     }
 
     Fp(String hex) {
@@ -299,7 +291,7 @@ public class BLS {
     }
 
     Fp sub(Fp b) {
-      return new Fp(this.i.add(b.i));
+      return new Fp(this.i.subtract(b.i));
     }
 
     Fp neg() {
@@ -336,8 +328,14 @@ public class BLS {
       return new Fp(x);    
     } 
 
-    public boolean isZero() {
+    boolean isZero() {
       return this.i.signum() == 0;
+    }
+
+    void serialize(byte[] out, int off) {
+      byte[] encoded = i.toByteArray();
+      int padding = SIZE - encoded.length;
+      System.arraycopy(encoded, 0, out, off + padding, encoded.length);
     }
 
     @Override
@@ -363,6 +361,8 @@ public class BLS {
 
     final static Fp2 ZERO = new Fp2(new Fp(0), new Fp(0));
     final static Fp2 ONE = new Fp2(new Fp(1), new Fp(0));
+
+    final static int SIZE = Fp.SIZE * 2;
 
     private Fp re;
     private Fp im;
@@ -448,6 +448,11 @@ public class BLS {
 
     Fp2 frobeniusMap(int power) {
       return new Fp2(this.re, this.im.mul(FROBENIUS_COEFFICIENTS[power % 2]));
+    }
+
+    void serialize(byte[] out, int off) {
+      this.re.serialize(out, off);
+      this.im.serialize(out, Fp.SIZE + off);
     }
 
     @Override
@@ -841,7 +846,11 @@ public class BLS {
     }
 
     byte[] toByteArray() {
-      return null;
+      PointG2 p = this.toAffine();
+      byte[] result = new byte[Fp2.SIZE * 2];
+      p.x.serialize(result, 0);
+      p.y.serialize(result, Fp2.SIZE);
+      return result;
     }
 
     @Override
