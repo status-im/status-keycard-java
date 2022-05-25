@@ -5,6 +5,9 @@ import java.security.DigestException;
 import java.security.MessageDigest;
 
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.encoders.Hex;
+
+import im.status.keycard.globalplatform.Crypto;
 
 public class BLS {
   private BLS() {}
@@ -143,7 +146,7 @@ public class BLS {
     byte[] uniformBytes = expandMessage(msg, DST, count * M * L);
     Fp[][] u = new Fp[count][M];
     for (int i = 0; i < count; i++) {
-      for (int j = 0; i < M; j++) {
+      for (int j = 0; j < M; j++) {
         int off = (L * (j + (i * M)));
         u[i][j] = new Fp(Arrays.copyOfRange(uniformBytes, off, off + L));
       }
@@ -243,12 +246,17 @@ public class BLS {
     return new PointG2(numerator, y, denominator);
   }
 
-  static byte[] hash(byte[] msg) {
+  public static byte[] hash(byte[] msg) {
     Fp[][] u = hashToField(msg, 2);
     PointG2 q0 = isogenyMapG2(mapToCurveSimpleSWU9mod16(new Fp2(u[0][0], u[0][1])));
     PointG2 q1 = isogenyMapG2(mapToCurveSimpleSWU9mod16(new Fp2(u[1][0], u[1][1])));
     PointG2 r = q0.add(q1).clearCofactor();
     return r.toAffine().toByteArray();
+  }
+
+  public static void main(String[] args) {
+    Crypto.addBouncyCastleProvider();
+    System.out.println(Hex.toHexString(BLS.hash(new byte[]{0x09})));
   }
 
   static class Fp {
@@ -382,7 +390,7 @@ public class BLS {
 
     Fp2 pow(BigInteger n) {
       if (n.signum() == 0) return Fp2.ONE;
-      if (n.intValueExact() == 1) return this;
+      if (n.equals(BigInteger.ONE)) return this;
 
       Fp2 p = Fp2.ONE;
       Fp2 d = this;
