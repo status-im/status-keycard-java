@@ -5,7 +5,6 @@ import java.security.DigestException;
 import java.security.MessageDigest;
 
 import org.bouncycastle.util.Arrays;
-import org.bouncycastle.util.encoders.Hex;
 
 import im.status.keycard.globalplatform.Crypto;
 
@@ -53,8 +52,8 @@ public class BLS {
             new Fp("1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaa63")),
     new Fp2(new Fp(0xc),
             new Fp("1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaa9f")),
-    new Fp2(Fp.ONE, Fp.ZERO),
-    new Fp2(Fp.ZERO, Fp.ZERO),    
+    Fp2.ONE,
+    Fp2.ZERO,    
   };  
 
   final private static Fp2[] ynum = new Fp2[] {
@@ -81,7 +80,7 @@ public class BLS {
   final private static Fp2[][] ISOGENY_COEFFICIENTS = new Fp2[][] { xnum, xden, ynum, yden };  
 
   final private static Fp2[] FP2_ROOTS_OF_UNITY = new Fp2[] {
-    new Fp2(Fp.ONE, Fp.ZERO),
+    Fp2.ONE,
     new Fp2(rv1, rv1.neg()),
     new Fp2(Fp.ZERO, Fp.ONE),
     new Fp2(rv1, rv1),
@@ -130,8 +129,10 @@ public class BLS {
       } else {
         md.update(strxor(b0, b, ((i - 1) * SHA256_DIGEST_SIZE)));
       }
+
       md.update((byte) (i + 1));
       md.update(DST);
+
       try {
         md.digest(b, (i * SHA256_DIGEST_SIZE), SHA256_DIGEST_SIZE);
       } catch (DigestException e) {
@@ -256,7 +257,7 @@ public class BLS {
 
   public static void main(String[] args) {
     Crypto.addBouncyCastleProvider();
-    System.out.println(Hex.toHexString(BLS.hash(new byte[]{0x09})));
+    BLS.hash(new byte[]{0x09});
   }
 
   static class Fp {
@@ -267,7 +268,7 @@ public class BLS {
     private BigInteger i;
 
     Fp(byte[] b) {
-      this(new BigInteger(b));
+      this(new BigInteger(1, b));
     }
 
     Fp(long i) {
@@ -303,29 +304,7 @@ public class BLS {
     }
     
     Fp inv() {
-      BigInteger a = this.i;
-      BigInteger b = P;
-
-      BigInteger x = BigInteger.ZERO;
-      BigInteger y = BigInteger.ONE;
-      BigInteger u = BigInteger.ONE;
-      BigInteger v = BigInteger.ZERO;
-
-      while(a.signum() != 0) {
-        BigInteger q = b.divide(a);
-        BigInteger r = b.remainder(a);
-        BigInteger m = x.subtract(u.multiply(q));
-        BigInteger n = y.subtract(v.multiply(q));
-
-        b = a;
-        a = r;
-        x = u;
-        y = v;
-        u = m;
-        v = n;
-      }
-
-      return new Fp(x);    
+      return new Fp(i.modInverse(P));   
     } 
 
     boolean isZero() {
@@ -359,8 +338,8 @@ public class BLS {
       new Fp("1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaaa")
     };
 
-    final static Fp2 ZERO = new Fp2(new Fp(0), new Fp(0));
-    final static Fp2 ONE = new Fp2(new Fp(1), new Fp(0));
+    final static Fp2 ZERO = new Fp2(Fp.ZERO, Fp.ZERO);
+    final static Fp2 ONE = new Fp2(Fp.ONE, Fp.ZERO);
 
     final static int SIZE = Fp.SIZE * 2;
 
