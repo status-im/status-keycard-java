@@ -55,4 +55,14 @@ public class CashCommandSet {
     return sign(data, KeycardCommandSet.SIGN_P2_ECDSA);
   }
 
+  /**
+   * Sends a SIGN APDU. The message can be any length, and it is mapped to a point on G2 internally.
+   *
+   * @param data the data to sign
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse signBLS(byte[] data) throws IOException {
+    return sign(BLS.hash(data), KeycardCommandSet.SIGN_P2_BLS12_381);
+  }
 }

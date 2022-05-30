@@ -6,8 +6,6 @@ import java.security.MessageDigest;
 
 import org.bouncycastle.util.Arrays;
 
-import im.status.keycard.globalplatform.Crypto;
-
 public class BLS {
   private BLS() {}
 
@@ -255,11 +253,6 @@ public class BLS {
     return r.toByteArray();
   }
 
-  public static void main(String[] args) {
-    Crypto.addBouncyCastleProvider();
-    BLS.hash(new byte[]{0x09});
-  }
-
   static class Fp {
     final static Fp ZERO = new Fp(BigInteger.ZERO);
     final static Fp ONE = new Fp(BigInteger.ONE);
@@ -352,8 +345,8 @@ public class BLS {
     }
 
     int sgn0() {
-      int sign0 = this.re.i.signum();
-      return (sign0 != 0) ? sign0 : this.im.i.signum();
+      boolean sign0 = this.re.i.testBit(0);
+      return sign0 || (this.re.isZero() && this.re.i.testBit(0)) ? 1 : 0;
     }
 
     Fp2 square() {
@@ -694,6 +687,8 @@ public class BLS {
     final static Fp12 WSQ_INV = WSQ.inv();
     final static Fp12 WCU_INV = WCU.inv();
 
+    final static PointG2 ZERO = new PointG2(Fp2.ONE, Fp2.ONE, Fp2.ZERO);
+
     private Fp2 x;
     private Fp2 y;
     private Fp2 z;
@@ -726,7 +721,7 @@ public class BLS {
       }
 
       if (v1.equals(v2)) {
-        return this.getZero();
+        return PointG2.ZERO;
       }
 
       Fp2 u = u1.sub(u2);
@@ -743,7 +738,7 @@ public class BLS {
     }
 
     private PointG2 doubleP() {
-      Fp2 w = this.x.mul(this.x).mul(3);
+      Fp2 w = this.x.square().mul(3);
       Fp2 s = this.y.mul(this.z);
       Fp2 ss = s.square();
       Fp2 sss = ss.mul(s);
@@ -751,14 +746,10 @@ public class BLS {
       Fp2 h = w.square().sub(b.mul(8));
       Fp2 x3 = h.mul(s).mul(2);
       Fp2 y3 = w.mul(b.mul(4).sub(h)).sub(
-        this.y.mul(this.y).mul(8).mul(ss)
+        this.y.square().mul(8).mul(ss)
       );
       Fp2 z3 = sss.mul(8);
       return new PointG2(x3, y3, z3);
-    }
-
-    private PointG2 getZero() {
-      return new PointG2(Fp2.ONE, Fp2.ONE, Fp2.ZERO);
     }
 
     private boolean isZero() {
@@ -789,7 +780,7 @@ public class BLS {
 
     private PointG2 psi2() {
       PointG2 p = toAffine();
-      return new PointG2(p.x.mul(PSI2_C1), y.neg(), z);
+      return new PointG2(p.x.mul(PSI2_C1), p.y.neg(), p.z);
     }
 
     private PointG2 psi() {
@@ -804,7 +795,7 @@ public class BLS {
     }
 
     private PointG2 mulUnsafe(BigInteger n) {
-      PointG2 point = this.getZero();
+      PointG2 point = PointG2.ZERO;
       PointG2 d = this;
 
       int bitLength = n.bitLength();
