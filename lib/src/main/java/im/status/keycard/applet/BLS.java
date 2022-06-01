@@ -7,6 +7,18 @@ import java.security.MessageDigest;
 import org.bouncycastle.util.Arrays;
 
 public class BLS {
+  public static byte[] hash(byte[] msg) {
+    Fp[][] u = hashToField(msg, 2);
+    PointG2 q0 = isogenyMapG2(mapToCurveSimpleSWU9mod16(new Fp2(u[0][0], u[0][1])));
+    PointG2 q1 = isogenyMapG2(mapToCurveSimpleSWU9mod16(new Fp2(u[1][0], u[1][1])));
+    PointG2 r = q0.add(q1).clearCofactor();
+    return r.toByteArray(false);
+  }
+
+  public static byte[] compress(byte[] g2) {
+    return new PointG2(g2).toByteArray(true);
+  }
+
   private BLS() {}
 
   final static byte DST[] = {
@@ -245,14 +257,6 @@ public class BLS {
     return new PointG2(numerator, y, denominator);
   }
 
-  public static byte[] hash(byte[] msg) {
-    Fp[][] u = hashToField(msg, 2);
-    PointG2 q0 = isogenyMapG2(mapToCurveSimpleSWU9mod16(new Fp2(u[0][0], u[0][1])));
-    PointG2 q1 = isogenyMapG2(mapToCurveSimpleSWU9mod16(new Fp2(u[1][0], u[1][1])));
-    PointG2 r = q0.add(q1).clearCofactor();
-    return r.toByteArray();
-  }
-
   static class Fp {
     final static Fp ZERO = new Fp(BigInteger.ZERO);
     final static Fp ONE = new Fp(BigInteger.ONE);
@@ -344,6 +348,10 @@ public class BLS {
       this.im = im;
     }
 
+    Fp2(byte[] buf, int off) {
+      this(new Fp(Arrays.copyOfRange(buf, off + Fp.SIZE, off + Fp2.SIZE)), new Fp(Arrays.copyOfRange(buf, off, off + Fp.SIZE)));
+    }
+
     int sgn0() {
       boolean sign0 = this.re.i.testBit(0);
       return sign0 || (this.re.isZero() && this.re.i.testBit(0)) ? 1 : 0;
@@ -423,8 +431,8 @@ public class BLS {
     }
 
     void serialize(byte[] out, int off) {
-      this.re.serialize(out, off);
-      this.im.serialize(out, Fp.SIZE + off);
+      this.im.serialize(out, off);
+      this.re.serialize(out, Fp.SIZE + off);
     }
 
     @Override
@@ -699,6 +707,12 @@ public class BLS {
       this.z = z;
     }
 
+    PointG2(byte[] buf) {
+      this.x = new Fp2(buf, 0);
+      this.y = new Fp2(buf, Fp2.SIZE);
+      this.z = Fp2.ONE;
+    }
+
     PointG2 add(PointG2 b) {
       if (this.isZero()) {
         return b;
@@ -815,11 +829,21 @@ public class BLS {
       return new PointG2(this.x.mul(invZ), this.y.mul(invZ), Fp2.ONE);
     }
 
-    byte[] toByteArray() {
+    byte[] toByteArray(boolean compressed) {
       PointG2 p = this.toAffine();
-      byte[] result = new byte[Fp2.SIZE * 2];
+      byte[] result = new byte[Fp2.SIZE * (compressed ? 1 : 2)];
       p.x.serialize(result, 0);
-      p.y.serialize(result, Fp2.SIZE);
+
+      if (compressed) {
+        result[0] |= (byte) 0x80;
+        BigInteger tmp = p.y.im.isZero() ? p.y.re.i.shiftLeft(1) : p.y.im.i.shiftLeft(1);
+        if (tmp.compareTo(P) > 0) {
+          result[0] |= 0x20;
+        }
+      } else {
+        p.y.serialize(result, Fp2.SIZE);
+      }
+
       return result;
     }
 
