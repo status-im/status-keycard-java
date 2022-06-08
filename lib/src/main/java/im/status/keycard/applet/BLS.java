@@ -3,8 +3,7 @@ package im.status.keycard.applet;
 import java.math.BigInteger;
 import java.security.DigestException;
 import java.security.MessageDigest;
-
-import org.bouncycastle.util.Arrays;
+import java.util.Arrays;
 
 public class BLS {
   public static byte[] hash(byte[] msg) {
