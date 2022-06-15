@@ -353,7 +353,7 @@ public class BLS {
 
     int sgn0() {
       boolean sign0 = this.re.i.testBit(0);
-      return sign0 || (this.re.isZero() && this.re.i.testBit(0)) ? 1 : 0;
+      return sign0 || (this.re.isZero() && this.im.i.testBit(0)) ? 1 : 0;
     }
 
     Fp2 square() {
