@@ -1,5 +1,6 @@
 package im.status.keycard.applet;
 
+import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 
 /**
@@ -13,6 +14,57 @@ public class TinyBERTLV {
 
   private byte[] buffer;
   private int pos;
+
+  public static int[] readNum(byte[] buf, int off) {
+    int len = buf[off++] & 0xff;
+    int lenlen = 0;
+
+    if ((len & 0x80) == 0x80) {
+      lenlen = len & 0x7f;
+      len = readVal(buf, off, lenlen);
+    }
+
+    return new int[] {len, off + lenlen};
+  }
+
+  public static int readVal(byte[] val, int off, int len) {
+    switch (len) {
+      case 1:
+        return val[off] & 0xff;
+      case 2:
+        return ((val[off] & 0xff) << 8) | (val[off+1] & 0xff);
+      case 3:
+        return ((val[off] & 0xff) << 16) | ((val[off+1] & 0xff) << 8) | (val[off+2] & 0xff);
+      case 4:
+        return ((val[off] & 0xff) << 24) | ((val[off+1] & 0xff) << 16) | ((val[off+2] & 0xff) << 8) | (val[off+3] & 0xff);
+      default:
+        throw new IllegalArgumentException("Integers of length " + len + " are unsupported");
+    }    
+  }
+
+  public static void writeNum(ByteArrayOutputStream os, int len) {
+    if ((len & 0xff000000) != 0) {
+      os.write(0x84);
+      os.write((len & 0xff000000) >> 24);
+      os.write((len & 0x00ff0000) >> 16);
+      os.write((len & 0x0000ff00) >> 8);
+      os.write(len & 0x000000ff);
+    } else if ((len & 0x00ff0000) != 0) {
+      os.write(0x83);
+      os.write((len & 0x00ff0000) >> 16);
+      os.write((len & 0x0000ff00) >> 8);
+      os.write(len & 0x000000ff);
+    } else if ((len & 0x0000ff00) != 0) {
+      os.write(0x82);
+      os.write((len & 0x0000ff00) >> 8);
+      os.write(len & 0x000000ff);
+    } else if ((len & 0x00000080) != 0) {
+      os.write(0x81);
+      os.write(len & 0x000000ff);
+    } else {
+      os.write(len);
+    }
+  }
 
   public TinyBERTLV(byte[] buffer) {
     this.buffer = buffer;
@@ -64,19 +116,7 @@ public class TinyBERTLV {
    */
   public int readInt() throws IllegalArgumentException {
     byte[] val = readPrimitive(TLV_INT);
-
-    switch (val.length) {
-      case 1:
-        return val[0] & 0xff;
-      case 2:
-        return ((val[0] & 0xff) << 8) | (val[1] & 0xff);
-      case 3:
-        return ((val[0] & 0xff) << 16) | ((val[1] & 0xff) << 8) | (val[2] & 0xff);
-      case 4:
-        return ((val[0] & 0xff) << 24) | ((val[1] & 0xff) << 16) | ((val[2] & 0xff) << 8) | (val[3] & 0xff);
-      default:
-        throw new IllegalArgumentException("Integers of length " + val.length + " are unsupported");
-    }
+    return TinyBERTLV.readVal(val, 0, val.length);
   }
 
   /**
@@ -104,13 +144,9 @@ public class TinyBERTLV {
    * @return the tag
    */
   public int readLength() {
-    int len = buffer[pos++] & 0xff;
-
-    if (len == 0x81) {
-      len = buffer[pos++] & 0xff;
-    }
-
-    return len;
+    int[] len = TinyBERTLV.readNum(buffer, pos);
+    pos = len[1];
+    return len[0];
   }
 
   private void checkTag(int expected, int actual) throws IllegalArgumentException {
