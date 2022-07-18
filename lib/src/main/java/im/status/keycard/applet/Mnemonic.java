@@ -3,10 +3,6 @@ package im.status.keycard.applet;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Scanner;
 
 public class Mnemonic {
   private final static int WORDLIST_SIZE = 2048;

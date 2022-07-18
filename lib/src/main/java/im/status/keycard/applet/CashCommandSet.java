@@ -33,15 +33,36 @@ public class CashCommandSet {
   }
 
   /**
-   * Sends a SIGN APDU. This signs a precomputed hash so the input must be exactly 32-bytes long.
+   * Sends a SIGN APDU.
+   *
+   * @param data the data to sign
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse sign(byte[] data, byte p2) throws IOException {
+    APDUCommand sign = new APDUCommand(0x80, KeycardCommandSet.INS_SIGN, 0x00, p2, data);
+    return apduChannel.send(sign);
+  }
+
+  /**
+   * Sends a SIGN APDU. This signs a precomputed hash with ECDSA so the input must be exactly 32-bytes long.
    *
    * @param data the data to sign
    * @return the raw card response
    * @throws IOException communication error
    */
   public APDUResponse sign(byte[] data) throws IOException {
-    APDUCommand sign = new APDUCommand(0x80, KeycardCommandSet.INS_SIGN, 0x00, 0x00, data);
-    return apduChannel.send(sign);
+    return sign(data, KeycardCommandSet.SIGN_P2_ECDSA);
   }
 
+  /**
+   * Sends a SIGN APDU. The message can be any length, and it is mapped to a point on G2 internally.
+   *
+   * @param data the data to sign
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse signBLS(byte[] data) throws IOException {
+    return sign(BLS.hash(data), KeycardCommandSet.SIGN_P2_BLS12_381);
+  }
 }

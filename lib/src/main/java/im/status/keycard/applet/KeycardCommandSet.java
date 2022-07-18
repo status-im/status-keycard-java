@@ -59,6 +59,9 @@ public class KeycardCommandSet {
   static final byte SIGN_P1_DERIVE_AND_MAKE_CURRENT = 0x02;
   static final byte SIGN_P1_PINLESS = 0x03;
 
+  public static final byte SIGN_P2_ECDSA = 0x00;
+  public static final byte SIGN_P2_BLS12_381 = 0x01;
+
   public static final byte STORE_DATA_P1_PUBLIC = 0x00;
   public static final byte STORE_DATA_P1_NDEF = 0x01;
   public static final byte STORE_DATA_P1_CASH = 0x02;
