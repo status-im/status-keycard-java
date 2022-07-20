@@ -20,6 +20,7 @@ public class RecoverableSignature {
   private int recId;
   private byte[] r;
   private byte[] s;
+  private boolean compressed;
 
   public static final byte TLV_SIGNATURE_TEMPLATE = (byte) 0xA0;
   public static final byte TLV_ECDSA_TEMPLATE = (byte) 0x30;
@@ -41,15 +42,28 @@ public class RecoverableSignature {
   public RecoverableSignature(byte[] hash, byte[] tlvData) {
     TinyBERTLV tlv = new TinyBERTLV(tlvData);
     tlv.enterConstructed(TLV_SIGNATURE_TEMPLATE);
-    publicKey = tlv.readPrimitive(ApplicationInfo.TLV_PUB_KEY);
+    this.publicKey = tlv.readPrimitive(ApplicationInfo.TLV_PUB_KEY);
     tlv.enterConstructed(TLV_ECDSA_TEMPLATE);
-    r = toUInt(tlv.readPrimitive(TinyBERTLV.TLV_INT));
-    s = toUInt(tlv.readPrimitive(TinyBERTLV.TLV_INT));
+    this.r = toUInt(tlv.readPrimitive(TinyBERTLV.TLV_INT));
+    this.s = toUInt(tlv.readPrimitive(TinyBERTLV.TLV_INT));
+    this.compressed = false;
 
+    calculateRecID(hash);
+  }
+
+  public RecoverableSignature(byte[] publicKey, boolean compressed, byte[] r, byte[] s, int recId) {
+    this.publicKey = publicKey;
+    this.r = r;
+    this.s = s;
+    this.compressed = compressed;
+    this.recId = recId;
+  }
+
+  void calculateRecID(byte[] hash) {
     recId = -1;
 
     for (int i = 0; i < 4; i++) {
-      byte[] candidate = recoverFromSignature(i, new BigInteger(1, hash), new BigInteger(1, r), new BigInteger(1, s));
+      byte[] candidate = recoverFromSignature(i, hash, r, s, compressed);
 
       if (Arrays.equals(candidate, publicKey)) {
         recId = i;
@@ -62,7 +76,7 @@ public class RecoverableSignature {
     }
   }
 
-  private byte[] toUInt(byte[] signedInt) {
+  static byte[] toUInt(byte[] signedInt) {
     if (signedInt[0] == 0) {
       return Arrays.copyOfRange(signedInt, 1, signedInt.length);
     } else {
@@ -114,7 +128,15 @@ public class RecoverableSignature {
     return Ethereum.toEthereumAddress(publicKey);
   }
 
-  private static byte[] recoverFromSignature(int recId, BigInteger e, BigInteger r, BigInteger s) {
+  static byte[] recoverFromSignature(int recId, byte[] hash, byte[] r, byte[] s, boolean compressed) {
+    BigInteger h = new BigInteger(1, hash);
+    BigInteger br = new BigInteger(1, r);
+    BigInteger bs = new BigInteger(1, s);
+
+    return recoverFromSignature(recId, h, br, bs, compressed);
+  }
+
+  static byte[] recoverFromSignature(int recId, BigInteger e, BigInteger r, BigInteger s, boolean compressed) {
     BigInteger n = CURVE.getN();
     BigInteger i = BigInteger.valueOf((long) recId / 2);
     BigInteger x = r.add(i.multiply(n));
@@ -135,7 +157,7 @@ public class RecoverableSignature {
     BigInteger srInv = rInv.multiply(s).mod(n);
     BigInteger eInvrInv = rInv.multiply(eInv).mod(n);
     ECPoint q = ECAlgorithms.sumOfTwoMultiplies(CURVE.getG(), eInvrInv, R, srInv);
-    return q.getEncoded(false);
+    return q.getEncoded(compressed);
   }
 
   private static ECPoint decompressKey(BigInteger xBN, boolean yBit) {
