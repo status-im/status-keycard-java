@@ -76,7 +76,7 @@ public class Certificate extends RecoverableSignature {
       byte[] pub = Arrays.copyOfRange(certData, 0, 33);
       byte[] r = Arrays.copyOfRange(certData, 33, 65);
       byte[] s = Arrays.copyOfRange(certData, 65, 97);
-      int recId = certData[98];
+      int recId = certData[97];
 
       MessageDigest md = MessageDigest.getInstance("SHA256", "BC");
       byte[] hash = md.digest(pub);
