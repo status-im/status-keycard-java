@@ -99,7 +99,7 @@ public class Certificate extends RecoverableSignature {
       tlv.enterConstructed(TLV_SIGNATURE_TEMPLATE);
       byte[] certData = tlv.readPrimitive(TLV_CERT);
       Certificate cert = fromTLV(certData);
-      byte[] signature = tlv.readPrimitive(TLV_ECDSA_TEMPLATE);
+      byte[] signature = tlv.peekUnread();
       Signature verifier = Signature.getInstance("NONEWithECDSA", "BC");
 
       ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec("secp256k1");
