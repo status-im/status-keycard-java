@@ -20,6 +20,7 @@ public class KeycardCommandSet {
   static final byte INS_INIT = (byte) 0xFE;
   static final byte INS_GET_STATUS = (byte) 0xF2;
   static final byte INS_SET_NDEF = (byte) 0xF3;
+  static final byte INS_IDENTIFY_CARD = (byte) 0x14;
   static final byte INS_VERIFY_PIN = (byte) 0x20;
   static final byte INS_CHANGE_PIN = (byte) 0x21;
   static final byte INS_UNBLOCK_PIN = (byte) 0x22;
@@ -267,6 +268,18 @@ public class KeycardCommandSet {
    */
   public void unpairOthers() throws IOException, APDUException {
     secureChannel.unpairOthers(apduChannel);
+  }
+
+  /**
+   * Sends an IDENTIFY CARD APDU. The challenge is sent as APDU data as-is. It must be 32 bytes long
+   *
+   * @param challenge the data of the APDU
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse identifyCard(byte[] challenge) throws IOException {
+    APDUCommand identifyCard = new APDUCommand(0x80, INS_IDENTIFY_CARD, 0, 0, challenge);
+    return apduChannel.send(identifyCard);
   }
 
   /**
