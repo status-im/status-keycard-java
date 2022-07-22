@@ -56,7 +56,7 @@ public class Certificate extends RecoverableSignature {
       byte[] s = toUInt(tlv.readPrimitive(TinyBERTLV.TLV_INT));      
       Certificate cert = new Certificate(((ECPublicKey)caPair.getPublic()).getQ().getEncoded(true), true, r, s, -1);
       cert.calculateRecID(hash);
-      cert.identPriv = ((ECPrivateKey) identKeys.getPrivate()).getD().toByteArray();
+      cert.identPriv = toUInt(((ECPrivateKey) identKeys.getPrivate()).getD().toByteArray());
       cert.identPub = pub;
 
       return cert;
