@@ -278,8 +278,8 @@ public class KeycardCommandSet {
    * @throws IOException communication error
    */
   public APDUResponse identifyCard(byte[] challenge) throws IOException {
-    APDUCommand identifyCard = new APDUCommand(0x80, INS_IDENTIFY_CARD, 0, 0, challenge);
-    return apduChannel.send(identifyCard);
+    APDUCommand identifyCard = secureChannel.protectedCommand(0x80, INS_IDENTIFY_CARD, 0, 0, challenge);
+    return secureChannel.transmit(apduChannel, identifyCard);
   }
 
   /**
