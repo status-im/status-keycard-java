@@ -31,6 +31,10 @@ public class Crypto {
     }
   }
 
+  static {
+    Crypto.addBouncyCastleProvider();
+  }
+
   /**
    * Derives a session key for SCP02.
    *

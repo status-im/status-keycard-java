@@ -117,16 +117,9 @@ public class Mnemonic {
   }
 
   public static byte[] toBinarySeed(String mnemonicPhrase, String password) {
-    SecretKey key;
-
-    try {
-      SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512", "BC");
-      PBEKeySpec spec = new PBEKeySpec(mnemonicPhrase.toCharArray(), ("mnemonic" + password).getBytes(), 2048, 512);
-      key = skf.generateSecret(spec);
-    } catch (Exception e) {
-      throw new RuntimeException("Is Bouncycastle correctly initialized?");
-    }
-
+    SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512", "BC");
+    PBEKeySpec spec = new PBEKeySpec(mnemonicPhrase.toCharArray(), ("mnemonic" + password).getBytes(), 2048, 512);
+    SecretKey key = skf.generateSecret(spec);
     return key.getEncoded();
   }
 
