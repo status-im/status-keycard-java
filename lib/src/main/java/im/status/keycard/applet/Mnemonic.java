@@ -124,7 +124,7 @@ public class Mnemonic {
       PBEKeySpec spec = new PBEKeySpec(mnemonicPhrase.toCharArray(), ("mnemonic" + password).getBytes(), 2048, 512);
       key = skf.generateSecret(spec);
     } catch (Exception e) {
-      throw new RuntimeException("Is Bouncycastle correctly initialized?");
+      throw new RuntimeException("Is Bouncycastle correctly initialized?", e);
     }
 
     return key.getEncoded();
