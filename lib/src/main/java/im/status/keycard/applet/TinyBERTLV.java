@@ -120,6 +120,15 @@ public class TinyBERTLV {
   }
 
   /**
+   * Returns all unread bytes in the TLV.
+   * 
+   * @return all unread bytes
+   */
+  byte[] peekUnread() {
+    return Arrays.copyOfRange(buffer, pos, buffer.length);
+  }
+
+  /**
    * Low-level method to unread the last read tag. Only valid if the previous call was readTag(). Does nothing if the
    * end of the TLV has been reached.
    */

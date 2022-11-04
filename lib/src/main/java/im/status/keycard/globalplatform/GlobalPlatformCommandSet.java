@@ -251,6 +251,16 @@ public class GlobalPlatformCommandSet {
   }
 
   /**
+   * Deletes the Ident applet instance.
+   *
+   * @return the card response
+   * @throws IOException communication error
+   */
+  public APDUResponse deleteIdentInstance() throws IOException {
+    return delete(Identifiers.IDENT_INSTANCE_AID);
+  }  
+
+  /**
    * Deletes the Keycard package.
    *
    * @return the card response
@@ -271,6 +281,7 @@ public class GlobalPlatformCommandSet {
     deleteNDEFInstance().checkSW(APDUResponse.SW_OK, APDUResponse.SW_REFERENCED_DATA_NOT_FOUND);
     deleteKeycardInstance().checkSW(APDUResponse.SW_OK, APDUResponse.SW_REFERENCED_DATA_NOT_FOUND);
     deleteCashInstance().checkSW(APDUResponse.SW_OK, APDUResponse.SW_REFERENCED_DATA_NOT_FOUND);
+    deleteIdentInstance().checkSW(APDUResponse.SW_OK, APDUResponse.SW_REFERENCED_DATA_NOT_FOUND);
     deleteKeycardPackage().checkSW(APDUResponse.SW_OK, APDUResponse.SW_REFERENCED_DATA_NOT_FOUND);
   }
 
@@ -448,4 +459,14 @@ public class GlobalPlatformCommandSet {
   public APDUResponse installCashApplet() throws IOException {
     return installCashApplet(new byte[0]);
   }
+
+  /**
+   * Installs the Ident applet.
+   *
+   * @return the card response
+   * @throws IOException communication error.
+   */
+  public APDUResponse installIdentApplet() throws IOException {
+    return installForInstall(Identifiers.PACKAGE_AID, Identifiers.IDENT_AID, Identifiers.IDENT_INSTANCE_AID, new byte[0]);
+  }  
 }

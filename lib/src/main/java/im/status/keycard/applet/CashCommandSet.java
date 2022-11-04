@@ -33,6 +33,18 @@ public class CashCommandSet {
   }
 
   /**
+   * Sends an IDENTIFY CARD APDU. The challenge is sent as APDU data as-is. It must be 32 bytes long
+   *
+   * @param challenge the data of the APDU
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse identifyCard(byte[] challenge) throws IOException {
+    APDUCommand identifyCard = new APDUCommand(0x80, KeycardCommandSet.INS_IDENTIFY_CARD, 0, 0, challenge);
+    return apduChannel.send(identifyCard);
+  }  
+
+  /**
    * Sends a SIGN APDU.
    *
    * @param data the data to sign
