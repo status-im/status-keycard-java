@@ -278,11 +278,7 @@ public class GlobalPlatformCommandSet {
    * @throws IOException communication error
    */
   public void deleteKeycardInstancesAndPackage() throws IOException, APDUException {
-    deleteNDEFInstance().checkSW(APDUResponse.SW_OK, APDUResponse.SW_REFERENCED_DATA_NOT_FOUND);
-    deleteKeycardInstance().checkSW(APDUResponse.SW_OK, APDUResponse.SW_REFERENCED_DATA_NOT_FOUND);
-    deleteCashInstance().checkSW(APDUResponse.SW_OK, APDUResponse.SW_REFERENCED_DATA_NOT_FOUND);
-    deleteIdentInstance().checkSW(APDUResponse.SW_OK, APDUResponse.SW_REFERENCED_DATA_NOT_FOUND);
-    deleteKeycardPackage().checkSW(APDUResponse.SW_OK, APDUResponse.SW_REFERENCED_DATA_NOT_FOUND);
+    delete(Identifiers.PACKAGE_AID, (byte) 0x80).checkSW(APDUResponse.SW_OK, APDUResponse.SW_REFERENCED_DATA_NOT_FOUND);
   }
 
   /**
@@ -293,15 +289,27 @@ public class GlobalPlatformCommandSet {
    * @throws IOException communication error.
    */
   public APDUResponse delete(byte[] aid) throws IOException {
+    return delete(aid, (byte) 0);
+  }
+
+  /**
+   * Sends a DELETE APDU with the given AID
+   * @param aid the AID to the delete
+   * @param p2 the P2 value
+   * @return the raw card response
+   *
+   * @throws IOException communication error.
+   */
+  public APDUResponse delete(byte[] aid, byte p2) throws IOException {
     byte[] data = new byte[aid.length + 2];
     data[0] = 0x4F;
     data[1] = (byte) aid.length;
     System.arraycopy(aid, 0, data, 2, aid.length);
 
-    APDUCommand cmd = new APDUCommand(0x80, INS_DELETE, 0, 0, data);
+    APDUCommand cmd = new APDUCommand(0x80, INS_DELETE, 0, p2, data);
 
     return this.secureChannel.send(cmd);
-  }
+  }  
 
   /**
    * Loads the Keycard package.

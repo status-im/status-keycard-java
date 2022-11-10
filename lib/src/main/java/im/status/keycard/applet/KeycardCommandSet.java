@@ -77,8 +77,9 @@ public class KeycardCommandSet {
   static final byte EXPORT_KEY_P1_DERIVE = 0x01;
   static final byte EXPORT_KEY_P1_DERIVE_AND_MAKE_CURRENT = 0x02;
 
-  static final byte EXPORT_KEY_P2_PRIVATE_AND_PUBLIC = 0x00;
-  static final byte EXPORT_KEY_P2_PUBLIC_ONLY = 0x01;
+  public static final byte EXPORT_KEY_P2_PRIVATE_AND_PUBLIC = 0x00;
+  public static final byte EXPORT_KEY_P2_PUBLIC_ONLY = 0x01;
+  public static final byte EXPORT_KEY_P2_EXTENDED_PUBLIC = 0x02;
 
   static final byte TLV_APPLICATION_INFO_TEMPLATE = (byte) 0xA4;
 
@@ -633,6 +634,10 @@ public class KeycardCommandSet {
     return secureChannel.transmit(apduChannel, setPinlessPath);
   }
 
+  private byte poToP2(boolean publicOnly) {
+    return publicOnly ? EXPORT_KEY_P2_PUBLIC_ONLY : EXPORT_KEY_P2_PRIVATE_AND_PUBLIC;
+  }
+
   /**
    * Sends an EXPORT KEY APDU to export the current key.
    *
@@ -641,8 +646,19 @@ public class KeycardCommandSet {
    * @throws IOException communication error
    */
   public APDUResponse exportCurrentKey(boolean publicOnly) throws IOException {
-    return exportKey(EXPORT_KEY_P1_CURRENT, publicOnly, new byte[0]);
+    return exportCurrentKey(poToP2(publicOnly));
   }
+
+  /**
+   * Sends an EXPORT KEY APDU to export the current key.
+   *
+   * @param p2 the p2 parameter
+   * @return the raw card reponse
+   * @throws IOException communication error
+   */
+  public APDUResponse exportCurrentKey(byte p2) throws IOException {
+    return exportKey(EXPORT_KEY_P1_CURRENT, p2, new byte[0]);
+  }  
 
   /**
    * Sends an EXPORT KEY APDU. Performs derivation of the given keypath and optionally makes it the current key.
@@ -654,9 +670,22 @@ public class KeycardCommandSet {
    * @throws IOException communication error
    */
   public APDUResponse exportKey(String keyPath, boolean makeCurrent, boolean publicOnly) throws IOException {
-    KeyPath path = new KeyPath(keyPath);
-    return exportKey(path.getData(), path.getSource(), makeCurrent, publicOnly);
+    return exportKey(keyPath, makeCurrent, poToP2(publicOnly));
   }
+
+  /**
+   * Sends an EXPORT KEY APDU. Performs derivation of the given keypath and optionally makes it the current key.
+   *
+   * @param keyPath the keypath to export
+   * @param makeCurrent if the key should be made current or not
+   * @param p2 the P2 parameter
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse exportKey(String keyPath, boolean makeCurrent, byte p2) throws IOException {
+    KeyPath path = new KeyPath(keyPath);
+    return exportKey(path.getData(), path.getSource(), makeCurrent, p2);
+  }  
 
   /**
    * Sends an EXPORT KEY APDU. Performs derivation of the given keypath and optionally makes it the current key.
@@ -668,9 +697,22 @@ public class KeycardCommandSet {
    * @throws IOException communication error
    */
   public APDUResponse exportKey(byte[] keyPath, int source, boolean makeCurrent, boolean publicOnly) throws IOException {
-    int p1 = source | (makeCurrent ? EXPORT_KEY_P1_DERIVE_AND_MAKE_CURRENT : EXPORT_KEY_P1_DERIVE);
-    return exportKey(p1, publicOnly, keyPath);
+    return exportKey(keyPath, source, makeCurrent, poToP2(publicOnly));
   }
+
+  /**
+   * Sends an EXPORT KEY APDU. Performs derivation of the given keypath and optionally makes it the current key.
+   *
+   * @param keyPath the keypath to export
+   * @param makeCurrent if the key should be made current or not
+   * @param p2 the P2 parameter
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse exportKey(byte[] keyPath, int source, boolean makeCurrent, byte p2) throws IOException {
+    int p1 = source | (makeCurrent ? EXPORT_KEY_P1_DERIVE_AND_MAKE_CURRENT : EXPORT_KEY_P1_DERIVE);
+    return exportKey(p1, p2, keyPath);
+  }  
 
   /**
    * Sends an EXPORT KEY APDU. The parameters are sent as-is.
@@ -682,10 +724,22 @@ public class KeycardCommandSet {
    * @throws IOException communication error
    */
   public APDUResponse exportKey(int derivationOptions, boolean publicOnly, byte[] keypath) throws IOException {
-    byte p2 = publicOnly ? EXPORT_KEY_P2_PUBLIC_ONLY : EXPORT_KEY_P2_PRIVATE_AND_PUBLIC;
+    return exportKey(derivationOptions, poToP2(publicOnly), keypath);
+  }
+
+  /**
+   * Sends an EXPORT KEY APDU. The parameters are sent as-is.
+   *
+   * @param derivationOptions the P1 parameter
+   * @param p2 the P2 parameter
+   * @param keypath the data parameter
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse exportKey(int derivationOptions, byte p2, byte[] keypath) throws IOException {
     APDUCommand exportKey = secureChannel.protectedCommand(0x80, INS_EXPORT_KEY, derivationOptions, p2, keypath);
     return secureChannel.transmit(apduChannel, exportKey);
-  }
+  }  
 
   /**
    * Sends a GET DATA APDU.
