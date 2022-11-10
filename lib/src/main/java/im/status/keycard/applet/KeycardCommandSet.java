@@ -815,8 +815,24 @@ public class KeycardCommandSet {
    * @throws IOException communication error
    */
   public APDUResponse init(String pin, String puk, String pairingPassword, byte pinRetries, byte pukRetries) throws IOException {
-    return this.init(pin, puk, pairingPasswordToSecret(pairingPassword), pinRetries, pukRetries);
+    return this.init(pin, null, puk, pairingPasswordToSecret(pairingPassword), pinRetries, pukRetries);
   }
+
+  /**
+   * Sends the INIT command to the card.
+   *
+   * @param pin the PIN
+   * @param altPin the alternative PIN
+   * @param puk the PUK
+   * @param pairingPassword pairing password
+   * @param pinRetries the number of allowed PIN retries
+   * @param pukRetries the number of allowed PUK retries
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse init(String pin, String altPin, String puk, String pairingPassword, byte pinRetries, byte pukRetries) throws IOException {
+    return this.init(pin, altPin, puk, pairingPasswordToSecret(pairingPassword), pinRetries, pukRetries);
+  }  
 
   /**
    * Sends the INIT command to the card.
@@ -828,13 +844,14 @@ public class KeycardCommandSet {
    * @throws IOException communication error
    */
   public APDUResponse init(String pin, String puk, byte[] sharedSecret) throws IOException {
-    return init(pin, puk, sharedSecret, (byte) 0, (byte) 0);
+    return init(pin, null, puk, sharedSecret, (byte) 0, (byte) 0);
   }
 
   /**
    * Sends the INIT command to the card. If either pinRetries or pukRetries is zero, neither will be sent.
    *
    * @param pin the PIN
+   * @param pin the alternative
    * @param puk the PUK
    * @param sharedSecret the shared secret for pairing
    * @param pinRetries the number of allowed PIN retries
@@ -842,15 +859,29 @@ public class KeycardCommandSet {
    * @return the raw card response
    * @throws IOException communication error
    */
-  public APDUResponse init(String pin, String puk, byte[] sharedSecret, byte pinRetries, byte pukRetries) throws IOException {
-    boolean addRetries = !((pinRetries == 0) || (pukRetries == 0));
-    byte[] initData = Arrays.copyOf(pin.getBytes(), pin.length() + puk.length() + sharedSecret.length + (addRetries ? 2 : 0));
+  public APDUResponse init(String pin, String altPin, String puk, byte[] sharedSecret, byte pinRetries, byte pukRetries) throws IOException {
+    int baselen = pin.length() + puk.length() + sharedSecret.length;
+    int extlen;
+
+    if (altPin != null) {
+      extlen = 2 + altPin.length();
+    } else if ((pinRetries != 0) || (pukRetries != 0)) {
+      extlen = 2;
+    } else {
+      extlen = 0;
+    }
+    
+    byte[] initData = Arrays.copyOf(pin.getBytes(), baselen + extlen);
     System.arraycopy(puk.getBytes(), 0, initData, pin.length(), puk.length());
     System.arraycopy(sharedSecret, 0, initData, pin.length() + puk.length(), sharedSecret.length);
 
-    if (addRetries) {
-      initData[initData.length - 2] = pinRetries;
-      initData[initData.length - 1] = pukRetries;
+    if (extlen > 0) {
+      initData[baselen] = pinRetries;
+      initData[baselen + 1] = pukRetries;
+
+      if (extlen > 2) {
+        System.arraycopy(altPin.getBytes(), 0, initData, baselen + 2, altPin.length());
+      }
     }
 
     APDUCommand init = new APDUCommand(0x80, INS_INIT, 0, 0, secureChannel.oneShotEncrypt(initData));
