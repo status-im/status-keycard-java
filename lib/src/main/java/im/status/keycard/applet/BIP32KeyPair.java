@@ -66,12 +66,12 @@ public class BIP32KeyPair {
       tlv.unreadLastTag();
       privKey = tlv.readPrimitive(TLV_PRIV_KEY);
       tag = tlv.readTag();
-
-      if (tag == TLV_CHAIN_CODE) {
-        tlv.unreadLastTag();
-        chainCode = tlv.readPrimitive(TLV_CHAIN_CODE);
-      }
     }
+
+    if (tag == TLV_CHAIN_CODE) {
+      tlv.unreadLastTag();
+      chainCode = tlv.readPrimitive(TLV_CHAIN_CODE);
+    }    
 
     return new BIP32KeyPair(privKey, chainCode, pubKey);
   }
