@@ -554,7 +554,7 @@ public class KeycardCommandSet {
    * @throws IOException communication error
    */
   public APDUResponse sign(byte[] data, int p1) throws IOException {
-    APDUCommand sign = secureChannel.protectedCommand(0x80, INS_SIGN, p1, 0x00, data);
+    APDUCommand sign = secureChannel.protectedCommand(0x80, INS_SIGN, p1, 0x01, data);
     return secureChannel.transmit(apduChannel, sign);
   }
 

@@ -23,6 +23,7 @@ public class RecoverableSignature {
   private boolean compressed;
 
   public static final byte TLV_SIGNATURE_TEMPLATE = (byte) 0xA0;
+  public static final byte TLV_RAW_SIGNATURE = (byte) 0x80;
   public static final byte TLV_ECDSA_TEMPLATE = (byte) 0x30;
 
   private static final X9ECParameters CURVE_PARAMS = CustomNamedCurves.getByName("secp256k1");
@@ -41,6 +42,19 @@ public class RecoverableSignature {
    */
   public RecoverableSignature(byte[] hash, byte[] tlvData) {
     TinyBERTLV tlv = new TinyBERTLV(tlvData);
+    int tag = tlv.readTag();
+    tlv.unreadLastTag();
+
+    if (tag == TLV_RAW_SIGNATURE) {
+      initFromRawSignature(hash, tlv.readPrimitive(tag));
+    } else if (tag == TLV_SIGNATURE_TEMPLATE) {
+      initFromLegacy(hash, tlv);
+    } else {
+      throw new IllegalArgumentException("invalid tlv");
+    }
+  }
+
+  private void initFromLegacy(byte[] hash, TinyBERTLV tlv) {
     tlv.enterConstructed(TLV_SIGNATURE_TEMPLATE);
     this.publicKey = tlv.readPrimitive(ApplicationInfo.TLV_PUB_KEY);
     tlv.enterConstructed(TLV_ECDSA_TEMPLATE);
@@ -49,6 +63,14 @@ public class RecoverableSignature {
     this.compressed = false;
 
     calculateRecID(hash);
+  }
+
+  private void initFromRawSignature(byte[] hash, byte[] signature) {
+    this.r = Arrays.copyOfRange(signature, 0, 32);
+    this.s = Arrays.copyOfRange(signature, 32, 64);
+    this.recId = signature[64];
+    this.compressed = false;
+    this.publicKey = recoverFromSignature(this.recId, hash, this.r, this.s, this.compressed);
   }
 
   public RecoverableSignature(byte[] publicKey, boolean compressed, byte[] r, byte[] s, int recId) {
