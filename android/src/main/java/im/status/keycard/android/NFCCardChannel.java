@@ -24,14 +24,23 @@ public class NFCCardChannel implements CardChannel {
   public APDUResponse send(APDUCommand cmd) throws IOException {
     byte[] apdu = cmd.serialize();
     Log.d(TAG, String.format("COMMAND CLA: %02X INS: %02X P1: %02X P2: %02X LC: %02X", cmd.getCla(), cmd.getIns(), cmd.getP1(), cmd.getP2(), cmd.getData().length));
-    byte[] resp = this.isoDep.transceive(apdu);
-    APDUResponse response = new APDUResponse(resp);
-    Log.d(TAG, String.format("RESPONSE LEN: %02X, SW: %04X %n-----------------------", response.getData().length, response.getSw()));
-    return response;
+    
+    try {
+      byte[] resp = this.isoDep.transceive(apdu);
+      APDUResponse response = new APDUResponse(resp);
+      Log.d(TAG, String.format("RESPONSE LEN: %02X, SW: %04X %n-----------------------", response.getData().length, response.getSw()));
+      return response;
+    } catch(SecurityException e) {
+      throw new IOException("Tag disconnected", e);
+    }
   }
 
   @Override
   public boolean isConnected() {
-    return this.isoDep.isConnected();
+    try {
+      return this.isoDep.isConnected();
+    } catch(SecurityException e) {
+      return false;
+    }
   }
 }

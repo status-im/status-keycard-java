@@ -48,7 +48,11 @@ public class NFCCardManager extends Thread implements NfcAdapter.ReaderCallback 
    * @return if connected, false otherwise
    */
   public boolean isConnected() {
-    return isoDep != null && isoDep.isConnected();
+    try {
+      return isoDep != null && isoDep.isConnected();
+    } catch (SecurityException e) {
+      return false;
+    }
   }
 
   @Override
@@ -58,7 +62,7 @@ public class NFCCardManager extends Thread implements NfcAdapter.ReaderCallback 
       isoDep = IsoDep.get(tag);
       isoDep.connect();
       isoDep.setTimeout(120000);
-    } catch (IOException e) {
+    } catch (IOException | SecurityException e) {
       Log.e(TAG, "error connecting to tag");
     }
   }
