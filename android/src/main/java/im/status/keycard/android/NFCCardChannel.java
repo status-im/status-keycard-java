@@ -32,6 +32,8 @@ public class NFCCardChannel implements CardChannel {
       return response;
     } catch(SecurityException e) {
       throw new IOException("Tag disconnected", e);
+    } catch(IllegalArgumentException e) {
+      throw new IOException("Malformed card response", e);
     }
   }
 
