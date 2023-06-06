@@ -18,6 +18,7 @@ import java.util.Arrays;
  */
 public class KeycardCommandSet {
   static final byte INS_INIT = (byte) 0xFE;
+  static final byte INS_FACTORY_RESET = (byte) 0xFD;
   static final byte INS_GET_STATUS = (byte) 0xF2;
   static final byte INS_SET_NDEF = (byte) 0xF3;
   static final byte INS_IDENTIFY_CARD = (byte) 0x14;
@@ -80,6 +81,9 @@ public class KeycardCommandSet {
   public static final byte EXPORT_KEY_P2_PRIVATE_AND_PUBLIC = 0x00;
   public static final byte EXPORT_KEY_P2_PUBLIC_ONLY = 0x01;
   public static final byte EXPORT_KEY_P2_EXTENDED_PUBLIC = 0x02;
+
+  static final byte FACTORY_RESET_P1_MAGIC = (byte) 0xAA;
+  static final byte FACTORY_RESET_P2_MAGIC = 0x55;
 
   static final byte TLV_APPLICATION_INFO_TEMPLATE = (byte) 0xA4;
 
@@ -887,4 +891,15 @@ public class KeycardCommandSet {
     APDUCommand init = new APDUCommand(0x80, INS_INIT, 0, 0, secureChannel.oneShotEncrypt(initData));
     return apduChannel.send(init);
   }
+  
+  /**
+   * Sends the FACTORY RESET command to the card.
+   *
+   * @return the raw card response
+   * @throws IOException communication error
+   */
+  public APDUResponse factoryReset() throws IOException {
+    APDUCommand factoryReset = new APDUCommand(0x80, INS_FACTORY_RESET, FACTORY_RESET_P1_MAGIC, FACTORY_RESET_P2_MAGIC, new byte[0]);
+    return apduChannel.send(factoryReset);
+  }  
 }

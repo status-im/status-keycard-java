@@ -23,8 +23,9 @@ public class ApplicationInfo {
   static final byte CAPABILITY_KEY_MANAGEMENT = (byte) 0x02;
   static final byte CAPABILITY_CREDENTIALS_MANAGEMENT = (byte) 0x04;
   static final byte CAPABILITY_NDEF = (byte) 0x08;
+  static final byte CAPABILITY_FACTORY_RESET = (byte) 0x10;
 
-  static final byte CAPABILITIES_ALL = CAPABILITY_SECURE_CHANNEL | CAPABILITY_KEY_MANAGEMENT | CAPABILITY_CREDENTIALS_MANAGEMENT | CAPABILITY_NDEF;
+  static final byte CAPABILITIES_ALL = CAPABILITY_SECURE_CHANNEL | CAPABILITY_KEY_MANAGEMENT | CAPABILITY_CREDENTIALS_MANAGEMENT | CAPABILITY_NDEF | CAPABILITY_FACTORY_RESET;
 
   /**
    * Constructs an object by parsing the TLV data.
@@ -191,4 +192,13 @@ public class ApplicationInfo {
   public boolean hasNDEFCapability() {
     return (capabilities & CAPABILITY_NDEF) == CAPABILITY_NDEF;
   }
+
+  /**
+   * Returns true if the device supports the Factory Reset capability.
+   *
+   * @return true or false
+   */
+  public boolean hasFactoryResetCapability() {
+    return (capabilities & CAPABILITY_FACTORY_RESET) == CAPABILITY_FACTORY_RESET;
+  }  
 }
